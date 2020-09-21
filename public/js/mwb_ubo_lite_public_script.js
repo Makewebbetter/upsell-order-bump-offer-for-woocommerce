@@ -7,6 +7,14 @@ jQuery(document).ready( function($) {
     var default_image = '';
     var default_price = '';
 
+    function mwb_ubo_lite_intant_zoom_img() {
+
+        if( mwb.mobile_view != 1 ) {
+
+            $('.woocommerce-product-gallery__image').zoom();
+        }
+    }
+
     /*
      * POP-UP JS.
      * To hide on click close.
@@ -39,7 +47,7 @@ jQuery(document).ready( function($) {
 
                 // Default View on no selection.
                 $( '.mwb_bump_popup_image' ).html( default_image );
-                $('.woocommerce-product-gallery__image').zoom();
+                mwb_ubo_lite_intant_zoom_img();
                 $('#mwb_ubo_err_waring_for_variation').css( 'display','none' );
                 $('#mwb_ubo_price_html_for_variation').css( 'display','block' );
                 $('#mwb_ubo_bump_add_to_cart_button').css( 'display','none' );
@@ -88,7 +96,7 @@ jQuery(document).ready( function($) {
                     $('#mwb_ubo_bump_add_to_cart_button').css('display','none');
 
                     $( '.mwb_bump_popup_image' ).html( msg['image'] );
-                    $('.woocommerce-product-gallery__image').zoom();
+                    mwb_ubo_lite_intant_zoom_img();
                     $( '#mwb_ubo_err_waring_for_variation' ).html( msg['message'] );
 
                 } else if ( msg['key'] == 'not_available' ) {
@@ -98,7 +106,7 @@ jQuery(document).ready( function($) {
                     $('#mwb_ubo_bump_add_to_cart_button').css('display','none');
 
                     $( '.mwb_bump_popup_image' ).html( msg['image'] );
-                    $('.woocommerce-product-gallery__image').zoom();
+                    mwb_ubo_lite_intant_zoom_img();
                     $( '#mwb_ubo_err_waring_for_variation' ).html( msg['message'] );
 
                 } else if ( ! isNaN(msg['key']) ) {
@@ -108,7 +116,7 @@ jQuery(document).ready( function($) {
                     $('#mwb_ubo_bump_add_to_cart_button').css('display','flex');
 
                     $( '.mwb_bump_popup_image' ).html( msg['image'] );
-                    $('.woocommerce-product-gallery__image').zoom();
+                    mwb_ubo_lite_intant_zoom_img();
                     $('#variation_id_selected').val( msg['key'] );
                     $( '#mwb_ubo_price_html_for_variation' ).html( msg['message'] );
                 }
