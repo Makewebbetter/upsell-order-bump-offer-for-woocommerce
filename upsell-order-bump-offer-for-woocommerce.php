@@ -17,11 +17,11 @@
  * Description:       Show exclusive order bump offers on the checkout page to your customers. Offers that are relevant and benefits your customers on the existing purchase and so increase Average Order Value and your Revenue. <a target="_blank" href="https://makewebbetter.com/wordpress-plugins/?utm_source=MWB-orderbump-home&utm_medium=MWB-home-page&utm_campaign=MWB-orderbump-home" >Elevate your e-commerce store by exploring more on <strong>MakeWebBetter</strong></a>.
  *
  * Requires at least:       4.4
- * Tested up to:            5.6
+ * Tested up to:            5.6.2
  * WC requires at least:    3.0
- * WC tested up to:         4.8.0
+ * WC tested up to:         5.0.0
  *
- * Version:           1.4.2
+ * Version:           1.4.3
  * Author:            MakeWebBetter
  * Author URI:        https://makewebbetter.com/
  * License:           GPL-3.0
@@ -63,7 +63,7 @@ function mwb_ubo_lite_is_plugin_active( $plugin_slug = '' ) {
 /**
  * Currently plugin version.
  */
-define( 'UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_VERSION', '1.4.2' );
+define( 'UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_VERSION', '1.4.3' );
 
 /**
  * The code that runs during plugin activation.
