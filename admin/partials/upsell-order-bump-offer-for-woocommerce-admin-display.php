@@ -15,6 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+define( 'ONBOARD_PLUGIN_NAME', 'Upsell Order Bump Offer for WooCommerce' );
+
+if ( class_exists( 'Makewebbetter_Onboarding_Helper' ) ) {
+	$this->onboard = new Makewebbetter_Onboarding_Helper();
+}
+
 $mwb_ubo_lite_active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'bump-list';
 
 if ( 'overview' == get_transient( 'mwb_ubo_lite_default_settings_tab' ) ) {
@@ -27,12 +33,6 @@ do_action( 'mwb_ubo_lite_tab_active' );
 ?>
 <div class="wrap woocommerce" id="mwb_upsell_bump_setting_wrapper">
 	<div class="mwb_upsell_bump_setting_title"><?php echo esc_html( apply_filters( 'mwb_ubo_lite_heading', esc_html( 'Upsell Order Bump Offers', 'upsell-order-bump-offer-for-woocommerce' ) ) ); ?>
-	<span class="mwb_upsell_bump_setting_title_version">
-	<?php
-		esc_html_e( 'v', 'upsell-order-bump-offer-for-woocommerce' );
-		echo esc_html( UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_VERSION );
-	?>
-	</span>
 	</div>
 
 	<nav class="nav-tab-wrapper woo-nav-tab-wrapper">

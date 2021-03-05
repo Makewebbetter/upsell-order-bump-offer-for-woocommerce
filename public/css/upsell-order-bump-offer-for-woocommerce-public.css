@@ -37,18 +37,55 @@
 .mwb_bump_popup_inner_content {
 	padding-bottom: 20px;
 }
+
+/* CSS for custom input pop up starts.*/
+ .mwb_bump_popup_custom_input_wrapper , 
+ .mwb_bump_popup_custom_input_loader {
+ 
+	 background-color: rgba(0, 0, 0, 0.79);
+	 position: fixed;
+	 z-index: 999;
+	 left: 0;
+	 right: 0;
+	 display: none;
+	 align-items: center;
+	 top: 0;
+	 bottom: 0;
+	 justify-content: center;
+	 flex-direction: column;
+	 overflow-y: auto;
+	 height: 100%;
+	 z-index: 999;
+	 padding: 15px;
+ }
+ .mwb_bump_popup_custom_input_content {
+	 max-width: 875px;
+	 margin: 0 auto;
+	 width: 100%;
+	 background-color: #ffffff;
+	 position: relative;
+	 padding: 20px 0 0;
+	 overflow-y: auto;
+	 height: 450px;
+	 animation:fadein .5s;
+ }
+ .mwb_bump_popup_custom_input_inner_content {
+	 padding-bottom: 20px;
+ }
+/* CSS for custom input pop up ends. */
+
 p.stock.out-of-stock {
     margin: 0;
 }
-span#mwb_ubo_price_html_for_variation {
+.mwb_ubo_price_html_for_variation {
 	font-size: 20px;
 	font-weight: 700;
 }
-#mwb_ubo_price_html_for_variation ins {
+.mwb_ubo_price_html_for_variation ins {
     font-weight: 700;
     padding-left: 5px;
 }
-span#mwb_ubo_err_waring_for_variation {
+.mwb_ubo_err_waring_for_variation {
     color: #ff0000;
     margin-top: 25px;
     display: none;
@@ -89,8 +126,7 @@ p.mwb_ubo_bump_attributes_name {
     margin: 10px auto;
     font-size: unset;
 }
-#mwb_ubo_bump_add_to_cart_button {
-	display: inline-block;
+#payment .place-order .button.mwb_ubo_bump_add_to_cart_button, .mwb_ubo_bump_add_to_cart_button {
 	width: auto !important;
 	font-size: 16px !important;
 	white-space: unset !important;
@@ -134,7 +170,7 @@ p.mwb_ubo_bump_attributes_name {
 		flex: 0 0 100%;
 	}
 
-	#mwb_ubo_bump_add_to_cart_button {
+	.mwb_ubo_bump_add_to_cart_button {
 		margin:auto;
 	}
 

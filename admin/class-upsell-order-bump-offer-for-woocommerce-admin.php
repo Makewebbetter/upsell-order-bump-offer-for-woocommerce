@@ -70,13 +70,18 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 		 * class.
 		 */
 
+		$valid_screens = array(
+			'toplevel_page_upsell-order-bump-offer-for-woocommerce-setting',
+			'order-bump_page_upsell-order-bump-offer-for-woocommerce-reporting',
+		);
+
 		$screen = get_current_screen();
 
 		if ( isset( $screen->id ) ) {
 
 			$pagescreen = $screen->id;
 
-			if ( 'toplevel_page_upsell-order-bump-offer-for-woocommerce-setting' == $pagescreen ) {
+			if ( in_array( $pagescreen, $valid_screens ) ) {
 
 				wp_register_style( 'mwb_ubo_lite_admin_style', plugin_dir_url( __FILE__ ) . 'css/upsell-order-bump-offer-for-woocommerce-admin.css', array(), $this->version, 'all' );
 
@@ -91,6 +96,11 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 				wp_enqueue_style( 'woocommerce_admin_styles' );
 
 				wp_enqueue_style( 'wp-color-picker' );
+
+				// Enqueue for dialog box on bump creation window start.
+				wp_register_script( 'jQueryyy2', 'https://code.jquery.com/ui/1.12.1/jquery-ui.js', array( 'jquery' ), '1.0.0', true );
+				wp_enqueue_script( 'jQueryyy2' );
+				// Enqueue for dialog box on bump creation window start.
 
 			}
 		}
@@ -154,22 +164,18 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 
 					wp_enqueue_script( 'wp-color-picker' );
 
-					wp_localize_script( 'mwb_ubo_lite_admin_script', 'mwb_ubo_lite_ajaxurl', admin_url( 'admin-ajax.php' ) );
-
-					wp_localize_script( 'mwb_ubo_lite_admin_script', 'mwb_ubo_lite_location', admin_url( 'admin.php' ) . '?page=upsell-order-bump-offer-for-woocommerce-setting&tab=creation-setting' );
-
 					if ( ! empty( $_GET['mwb-bump-offer-section'] ) ) {
 
 						$bump_offer_section['value'] = sanitize_text_field( wp_unslash( $_GET['mwb-bump-offer-section'] ) );
 
-						wp_localize_script( 'mwb_ubo_lite_admin_script', 'offer_section_obj', $bump_offer_section );
+						wp_localize_script( 'mwb_ubo_lite_admin_script', 'mwb_ubo_lite_offer_section_obj', $bump_offer_section );
 					}
 
 					if ( ! empty( $_GET['mwb-bump-template-section'] ) ) {
 
 						$bump_template_section['value'] = sanitize_text_field( wp_unslash( $_GET['mwb-bump-template-section'] ) );
 
-						wp_localize_script( 'mwb_ubo_lite_admin_script', 'template_section_obj', $bump_template_section );
+						wp_localize_script( 'mwb_ubo_lite_admin_script', 'mwb_ubo_lite_template_section_obj', $bump_template_section );
 					}
 
 					wp_localize_script( 'woocommerce_admin', 'woocommerce_admin', $params );
@@ -178,9 +184,22 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 
 					wp_enqueue_script( 'mwb_ubo_lite_add_new_offer_script', plugin_dir_url( __FILE__ ) . 'js/mwb_ubo_lite_add_new_offer_script.js', array( 'woocommerce_admin', 'wc-enhanced-select' ), $this->version, false );
 
-					wp_localize_script( 'mwb_ubo_lite_add_new_offer_script', 'ajax_url', admin_url( 'admin-ajax.php' ) );
-
-					wp_enqueue_script( 'mwb_ubo_lite_sticky_js', plugin_dir_url( __FILE__ ) . 'js/jquery.sticky-sidebar.js', array( 'jquery' ), $this->version, false );
+					// wp_localize_script(
+					// 	'mwb_ubo_lite_add_new_offer_script',
+					// 	'mwb_ubo_lite_ajaxurl',
+					// 	admin_url( 'admin-ajax.php' ) 
+					// );
+					wp_localize_script(
+						'mwb_ubo_lite_add_new_offer_script',
+						'mwb_ubo_lite_ajaxurl',
+						admin_url( 'admin-ajax.php' )
+						// array(
+						// 	'ajaxurl'       => admin_url( 'admin-ajax.php' ),
+						// 	'mobile_view' => wp_is_mobile(),
+						// 	'auth_nonce'  => wp_create_nonce( 'mwb_ubo_lite_nonce' ),
+						// )
+					);
+				wp_enqueue_script( 'mwb_ubo_lite_sticky_js', plugin_dir_url( __FILE__ ) . 'js/jquery.sticky-sidebar.js', array( 'jquery' ), $this->version, false );
 			}
 		}
 	}
@@ -200,8 +219,18 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 			'upsell-order-bump-offer-for-woocommerce-setting',
 			array( $this, 'mwb_ubo_lite_add_backend' ),
 			'dashicons-yes-alt',
-			56
+			57
 		);
+
+		/**
+		 * Add sub-menu for funnel settings.
+		 */
+		add_submenu_page( 'upsell-order-bump-offer-for-woocommerce-setting', esc_html__( 'Order Bumps & Settings', 'upsell-order-bump-offer-for-woocommerce' ), esc_html__( 'Order Bumps & Settings', 'upsell-order-bump-offer-for-woocommerce' ), 'manage_options', 'upsell-order-bump-offer-for-woocommerce-setting' );
+
+		/**
+		 * Add sub-menu for reportings settings.
+		 */
+		add_submenu_page( 'upsell-order-bump-offer-for-woocommerce-setting', esc_html__( 'Sales Reports & Analytics', 'upsell-order-bump-offer-for-woocommerce' ), esc_html__( 'Sales Reports & Analytics', 'upsell-order-bump-offer-for-woocommerce' ), 'manage_options', 'upsell-order-bump-offer-for-woocommerce-reporting', array( $this, 'add_submenu_page_reporting_callback' ) );
 	}
 
 	/**
@@ -255,14 +284,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 				?>
 				<div class="wrap woocommerce" id="mwb_upsell_bump_setting_wrapper">
 
-					<div class="mwb_upsell_bump_setting_title"><?php esc_html_e( 'Upsell Order Bump Offers Pro', 'upsell-order-bump-offer-for-woocommerce' ); ?>
-						<span class="mwb_upsell_bump_setting_title_version">
-						<?php
-							esc_html_e( 'v', 'upsell-order-bump-offer-for-woocommerce' );
-							echo esc_html( UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_PRO_VERSION );
-						?>
-						</span>
-					</div>
+					<div class="mwb_upsell_bump_setting_title"><?php esc_html_e( 'Upsell Order Bump Offers Pro', 'upsell-order-bump-offer-for-woocommerce' ); ?></div>
 					<?php
 					// Failed Activation.
 					include_once( UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_PRO_DIRPATH . '/admin/partials/templates/mwb-upsell-bump-license.php' );
@@ -275,6 +297,16 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 			// With org files only.
 			require_once plugin_dir_path( __FILE__ ) . '/partials/upsell-order-bump-offer-for-woocommerce-admin-display.php';
 		}
+	}
+
+	/**
+	 * Reporting and Funnel Stats Sub menu callback.
+	 *
+	 * @since       1.4.0
+	 */
+	public function add_submenu_page_reporting_callback() {
+
+		require_once UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_DIR_PATH . 'admin/reporting/upsell-order-bump-reporting-config-panel.php';
 	}
 
 
@@ -295,7 +327,6 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 				'posts_per_page'        => -1,
 			)
 		);
-
 		if ( $search_results->have_posts() ) :
 
 			while ( $search_results->have_posts() ) :
@@ -323,9 +354,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 				$unsupported_product_types = array(
 					'grouped',
 					'external',
-					'subscription',
-					'variable-subscription',
-					'subscription_variation',
+					// 'subscription',
+					// 'variable-subscription',
+					// 'subscription_variation',
 				);
 
 				if ( in_array( $product_type, $unsupported_product_types ) || 'outofstock' == $stock ) {
@@ -390,9 +421,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 				$unsupported_product_types = array(
 					'grouped',
 					'external',
-					'subscription',
-					'variable-subscription',
-					'subscription_variation',
+					// 'subscription',
+					// 'variable-subscription',
+					// 'subscription_variation',
 				);
 
 				if ( in_array( $product_type, $unsupported_product_types ) || 'outofstock' == $stock ) {
@@ -458,20 +489,31 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 			// Get order id as post id.
 			$order = wc_get_order( $post_ID );
 
-			foreach ( $order->get_items() as $item_id => $item ) {
+			$order_items = $order->get_items();
 
-				$bump_offer = wc_get_order_item_meta( $item_id, 'Bump Offer', true );
-				$bump_price = $item->get_total();
+			$order_bump_purchased = false;
 
+			if ( ! empty( $order_items ) && is_array( $order_items ) ) {
+
+				$order_bump_item_total = 0;
+
+				foreach ( $order_items as $item_id => $single_item ) {
+
+					if ( ! empty( wc_get_order_item_meta( $item_id, 'is_order_bump_purchase', true ) ) || ! empty( wc_get_order_item_meta( $item_id, 'Bump Offer', true ) ) ) {
+
+						$order_bump_purchased = true;
+						$order_bump_item_total += $single_item->get_total();
+					}
+				}
 			}
 
-			if ( ! empty( $bump_offer ) ) :
+			if ( $order_bump_purchased ) :
 				?>
 
 				<p class= "mwb_bump_table_html" >
 					<?php
 						$allowed_html = mwb_ubo_lite_allowed_html();
-						echo esc_html_e( 'Order Bump: ', 'upsell-order-bump-offer-for-woocommerce' ) . wp_kses( wc_price( $bump_price ), $allowed_html );
+						echo esc_html_e( 'Order Bump: ', 'upsell-order-bump-offer-for-woocommerce' ) . wp_kses( wc_price( $order_bump_item_total ), $allowed_html );
 					?>
 				</p>
 
@@ -480,5 +522,386 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 		}
 	}
 
-	// End of class.
-}
+		/**
+		 * Add Upsell Reporting in Woo Admin reports.
+		 *
+		 * @since       1.4.0
+		 */
+	public function add_order_bump_reporting( $reports ) {
+
+		$reports['mwb_order_bump'] = array(
+
+			'title'  => esc_html__( 'Order Bump', 'upsell-order-bump-offer-for-woocommerce' ),
+			'reports'  => array(
+
+				'sales_by_date' => array(
+					'title' => esc_html__( 'Order Bump Sales by date', 'upsell-order-bump-offer-for-woocommerce' ),
+					'description' => '',
+					'hide_title' => 1,
+					'callback' => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
+				),
+
+				'sales_by_product' => array(
+					'title' => esc_html__( 'Order Bump Sales by product', 'upsell-order-bump-offer-for-woocommerce' ),
+					'description' => '',
+					'hide_title' => 1,
+					'callback' => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
+				),
+
+				'sales_by_category' => array(
+					'title' => esc_html__( 'Order Bump Sales by category', 'upsell-order-bump-offer-for-woocommerce' ),
+					'description' => '',
+					'hide_title' => 1,
+					'callback' => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
+				),
+			),
+		);
+
+		return $reports;
+	}
+
+	/**
+	 * Add custom report. callback.
+	 *
+	 * @since       1.4.0
+	 */
+	public static function order_bump_reporting_callback( $report_type ) {
+
+		$report_file = ! empty( $report_type ) ? str_replace( '_', '-', $report_type ) : '';
+		$preformat_string = ! empty( $report_type ) ? ucwords( str_replace( '_', ' ', $report_type ) ) : '';
+		$class_name = ! empty( $preformat_string ) ? 'Mwb_Upsell_Order_Bump_Report_' . str_replace( ' ', '_', $preformat_string ) : '';
+
+		/**
+		 * The file responsible for defining reporting.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'reporting/class-mwb-upsell-order-bump-report-' . $report_file . '.php';
+
+		if ( class_exists( $class_name ) ) {
+
+			$report = new $class_name();
+			$report->output_report();
+
+		} else {
+
+			?>
+			<div class="mwb_ubo_report_error_wrap" style="text-align: center;">
+				<h2 class="mwb_ubo_report_error_text">
+					<?php esc_html_e( 'Some Error Occured while creating report.', 'upsell-order-bump-offer-for-woocommerce' ); ?>
+				</h2>
+			</div>
+			<?php
+		}
+	}
+
+	/**
+	 * Include Order Bump screen for Onboarding pop-up.
+	 *
+	 * @since    1.4.0
+	 */
+	public function add_mwb_frontend_screens( $valid_screens = array() ) {
+
+		if ( is_array( $valid_screens ) ) {
+
+			// Push your screen here.
+			array_push( $valid_screens, 'toplevel_page_upsell-order-bump-offer-for-woocommerce-setting' );
+		}
+
+		return $valid_screens;
+	}
+
+	/**
+	 * Include Order Bump plugin for Deactivation pop-up.
+	 *
+	 * @since    1.4.0
+	 */
+	public function add_mwb_deactivation_screens( $valid_screens = array() ) {
+
+		if ( is_array( $valid_screens ) ) {
+
+			// Push your screen here.
+			array_push( $valid_screens, 'upsell-order-bump-offer-for-woocommerce' );
+			array_push( $valid_screens, 'upsell-order-bump-offer-for-woocommerce-pro' );
+		}
+
+		return $valid_screens;
+	}
+
+	/**
+	 * Validate Pro version compatibility.
+	 *
+	 * @since    1.4.0
+	 */
+	public function validate_version_compatibility() {
+
+		$result = mwb_ubo_lite_pro_version_incompatible();
+
+		// When Pro version in incompatible.
+		if ( 'incompatible' == $result ) {
+
+			set_transient( 'mwb_ubo_lite_pro_version_incompatible', 'true' );
+
+			// Deactivate Pro Plugin.
+			add_action( 'admin_init', array( $this, 'deactivate_pro_plugin' ) );
+		}
+
+		// When Pro version in compatible and transient is set.
+		elseif ( 'compatible' == $result && 'true' == get_transient( 'mwb_ubo_lite_pro_version_incompatible' ) ) {
+
+			delete_transient( 'mwb_ubo_lite_pro_version_incompatible' );
+		}
+
+		if ( 'true' == get_transient( 'mwb_ubo_lite_pro_version_incompatible' ) ) {
+
+			// Deactivate Pro Plugin admin notice.
+			add_action( 'admin_notices', array( $this, 'deactivate_pro_admin_notice' ) );
+		}
+	}
+
+	/**
+	 * Deactivate Pro Plugin.
+	 *
+	 * @since    1.4.0
+	 */
+	public function deactivate_pro_plugin() {
+
+		// To hide Plugin activated notice.
+		if ( ! empty( $_GET['activate'] ) ) {
+
+			unset( $_GET['activate'] );
+		}
+
+		deactivate_plugins( 'upsell-order-bump-offer-for-woocommerce-pro/upsell-order-bump-offer-for-woocommerce-pro.php' );
+	}
+
+	/**
+	 * Deactivate Pro Plugin admin notice.
+	 *
+	 * @since    1.4.0
+	 */
+	public function deactivate_pro_admin_notice() {
+
+		$screen = get_current_screen();
+
+		$valid_screens = array(
+			'toplevel_page_upsell-order-bump-offer-for-woocommerce-setting',
+			'order-bump_page_upsell-order-bump-offer-for-woocommerce-reporting',
+			'plugins',
+		);
+
+		if ( ! empty( $screen->id ) && in_array( $screen->id, $valid_screens ) ) :
+			?>
+
+			<div class="notice notice-error is-dismissible mwb-notice">
+				<p><strong><?php esc_html_e( 'Upsell Order Bump Offer for WooCommerce Pro', 'upsell-order-bump-offer-for-woocommerce' ); ?></strong> <?php esc_html_e( 'is deactivated, Please Update the PRO version as this version is outdated and will not work with the current', 'upsell-order-bump-offer-for-woocommerce' ); ?><strong> <?php esc_html_e( 'Upsell Order Bump Offer for WooCommerce', 'upsell-order-bump-offer-for-woocommerce' ); ?></strong> <?php esc_html_e( 'Free version.', 'upsell-order-bump-offer-for-woocommerce' ); ?></p>
+			</div>
+
+			<?php
+		endif;
+	}
+
+
+	/**
+	 * Function to accept custom values such as name, placeholder,type from user and set those
+	 * values to woocommerce_admin_fields array parameter.
+	 */
+	public function make_custom_fields_with_user_input() {
+		$custom_input_array = get_option( 'custom_form_values_all_keys_collect', array() );
+		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
+		$name        = ! empty( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+		$placeholder = ! empty( $_POST['placeholder'] ) ? sanitize_text_field( wp_unslash( $_POST['placeholder'] ) ) : '';
+		$type        = ! empty( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : '';
+		$description = ! empty( $_POST['description'] ) ? sanitize_text_field( wp_unslash( $_POST['description'] ) ) : '';
+		// Search if the value was already there in the database.
+
+		add_option(
+			'custom_form_values_' . $name,
+			array(
+				'name'        => $name,
+				'placeholder' => $placeholder,
+				'type'        => $type,
+				'description' => $description,
+			)
+		);
+		// If first time function is run option will be set else will be updated.
+		if ( empty( $custom_input_array ) ) {
+			array_push( $custom_input_array, $name );
+			add_option(
+				'custom_form_values_all_keys_collect',
+				$custom_input_array
+			);
+		} else {
+			$check_for_duplicacy = get_option( 'custom_form_values_all_keys_collect' );
+			// Checks for duplicate value in database.
+			foreach ( $check_for_duplicacy as $key => $value ) {
+				if ( $name === $value ) {
+					$result_message = 'Duplicate Value';
+					echo json_encode( $result_message, JSON_FORCE_OBJECT );
+					wp_die();
+				}
+			}
+			array_push( $custom_input_array, $name );
+			update_option(
+				'custom_form_values_all_keys_collect',
+				$custom_input_array
+			);
+		}
+		// $custom_input_array will contain all the names of previously entered values.
+		$result_message = 'Duplicate Value';
+		echo json_encode( $result_message, JSON_FORCE_OBJECT );
+		wp_die();
+	}
+
+	/**
+	 * Function to get the value of option and show it onto the table in bump creation window.
+	 *
+	 * @param [type] $custom_form_return
+	 * @return void
+	 */
+	public function fetch_values_show_keys_in_table() {
+		$return_array = array();
+		$return_array = get_option(
+			'custom_form_values_all_keys_collect',
+			'value not set'
+		);
+		echo json_encode( $return_array, JSON_FORCE_OBJECT);
+		wp_die();
+	}
+	/**
+	 * Function to delete a particular row from the table on creation page of order bump.
+	 */
+	public function delete_a_row_from_creation_page_table() {
+		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
+		$id = ! empty( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
+		$updated_array = array();
+		$updated_array = get_option(
+			'custom_form_values_all_keys_collect',
+			'value not set'
+		);
+		// Delete the id from the array.
+		unset( $updated_array[ $id ] );
+		$updated_array = array_values( $updated_array );
+		update_option(
+			'custom_form_values_all_keys_collect',
+			$updated_array
+		);
+		// $a = count( get_option( 'custom_form_values_all_keys_collect' ) );
+		// foreach ( $a as $key => $value ) {
+		// 	$arr         = get_option( 'custom_form_values_' . $value );
+		// 	$mwb_upsell_bump_custom_field_name        = $arr['name'];
+		// 	$mwb_upsell_bump_custom_field_placeholder = $arr['placeholder'];
+		// 	$mwb_upsell_bump_custom_field_type        = $arr['type'];
+		// 	$mwb_upsell_bump_custom_field_description = $arr['description'];
+		// 	print_r( $mwb_upsell_bump_custom_field_name );
+		// 	print_r( $mwb_upsell_bump_custom_field_placeholder );
+		// 	print_r( $mwb_upsell_bump_custom_field_type );
+		// 	print_r( $mwb_upsell_bump_custom_field_description );
+		// 	wp_die();
+		// }
+		// echo $a;
+		wp_die();
+		// print_r( $a );
+	}
+
+
+	/**
+	 * Function to show the form on checkout page if the option is enabled.
+	 *
+	 * @param name $custom_form_return used to get the order id.
+	 */
+	// public function show_custom_form_on_checkout_page( $custom_form_return ) {
+	// 	$custom_form_return = '';
+
+	// 	// Approach one.
+	// 	$custom_form = array(
+	// 						array(
+	// 							'name' => __( 'Leaving, so soon?', 'woocommerce' ),
+	// 							'type' => 'title',
+	// 							'desc' => __( 'Please provide us with your secondary number and never miss a deal!' ),
+	// 							'id'   => 'pricing_options',
+	// 						),
+	// 						array(
+	// 							'name'     => __( 'Secondary Mobile Number', 'woocommerce' ),
+	// 							'desc'     => __( 'You can assign a secondary mobile number too', 'woocommerce' ),
+	// 							'id'       => 'mwb_upsell_bump_custom_dynamic_checkout_field',
+	// 							'default'  => '2',
+	// 							'required' => true,
+	// 							'type'     => 'text',
+	// 							'desc_tip' => true,
+	// 						),
+	// 						// array(
+	// 						// 	'name'     => __( 'Notifications', 'woocommerce' ),
+	// 						// 	'desc'     => __( 'Get notified about exciting offers and deals.', 'woocommerce' ),
+	// 						// 	'id'       => 'woocommerce_currency_pos',
+	// 						// 	'std'      => 'left',
+	// 						// 	'default'  => 'left',
+	// 						// 	'required' => true,
+	// 						// 	'type'     => 'select',
+	// 						// 	'options'  => array(
+	// 						// 		'left'        => __( 'Left', 'woocommerce' ),
+	// 						// 		'right'       => __( 'Right', 'woocommerce' ),
+	// 						// 		'left_space'  => __( 'Left (with space)', 'woocommerce' ),
+	// 						// 		'right_space' => __( 'Right (with space)', 'woocommerce' )
+	// 						// 	),
+	// 						// 	'desc_tip' => true,
+	// 						// ),
+
+	// 						array( 'type' => 'sectionend', 'id' => 'pricing_options' ),
+	// 					);
+
+	// 	if ( get_option( 'mwb_ubo_global_options' )['mwb_bump_enable_plugin_form'] === 'on' ) {
+	// 		if ( ! function_exists( 'woocommerce_admin_fields' ) ) { 
+	// 			require_once 'wp-content/plugins/woocommerce/includes/admin/wc-admin-functions.php';
+	// 		}
+	// 		$custom_form_return .= woocommerce_admin_fields( $custom_form );
+	// 	} else {
+	// 		$custom_form_return .= ' <h5><b>Secondary number option is disabled for this order bump</b><h5> ';
+	// 	}
+	// 		// Approach one ends.
+
+	// 		// Approach two.
+
+	// 		// if ( get_option( 'mwb_ubo_global_options' )['mwb_bump_enable_plugin_form'] === 'on' ) {
+	// 		// $custom_form_return .= '<div>';
+	// 		// $custom_form_return .= '<input type="number" id="woocommerce_price_thousand_sep" name="Secondary Mobile Number" >';
+	// 		// $custom_form_return .= '<label for="Notifications">Notifications.</label>';
+	// 		// $custom_form_return .= '<select name="Notifications" id="woocommerce_currency_pos">';
+	// 		// $custom_form_return .= '<option value="Enable" selected>Enable</option>';
+	// 		// $custom_form_return .= '<option value="Disable">Disable</option>';
+	// 		// $custom_form_return .= '</div>';.
+
+	// 		// } else {
+	// 		// $custom_form_return .= ' <h5><b>Secondary number option is disabled for this order bump</b><h5> ';
+	// 		// }
+	// 		// Approach two ends.
+
+	// 		return $custom_form_return;
+	// }
+
+	/**
+	 * Fucntion to update custom field value on checkout page to wp_woocommerce_order_itemmeta.
+	 *
+	 * @param name $order_id used to get the order id.
+	 */
+	// public function is_express_delivery( $order_id ) {
+
+	// 	$order = wc_get_order( $order_id );
+	// 	$items = $order->get_items();
+	// 	// $subject_item_id will give us the 'item id' of the offer product.
+	// 	$subject_item_id = array_key_last( $items );
+	// 	// $subject_meta_value will give us the value from the custom field with the help of cookies.
+	// 	$subject_meta_value = isset( $_COOKIE['customCookie'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['customCookie'] ) ) : '';
+	// 	wc_add_order_item_meta( $subject_item_id, 'Secondary number', $subject_meta_value );
+	// }
+	/**
+	 * Function to show the value of custom field on the thankyou page.
+	 *
+	 * @return void
+	 */
+	// public function show_value_demo() {
+	// 	if ( isset( $_COOKIE['customCookie'] ) && ( $_COOKIE['customCookie'] !== 'undefined' ) ) {
+	// 		echo "Customer's secondary number is:- ";
+	// 		esc_html_e( sanitize_text_field( wp_unslash( $_COOKIE['customCookie'] ) ) );
+	// 	}
+	// }
+
+} // End of class.

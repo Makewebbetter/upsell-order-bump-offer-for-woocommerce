@@ -200,6 +200,25 @@ if ( isset( $_POST['mwb_upsell_bump_creation_setting_save'] ) ) {
 		$mwb_upsell_new_bump['design_text'] = $text_settings_post;
 	}
 
+	// If Order Bump already exists then save Sales By Bump - Stats if present.
+	if ( ! empty( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['offer_view_count'] ) ) {
+
+		$sales_stats_bump = $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ];
+
+		// Not Post data, so no need to Sanitize and Strip slashes.
+
+		// Empty for this already checked above.
+		$mwb_upsell_new_bump['offer_view_count'] = $sales_stats_bump['offer_view_count'];
+
+		$mwb_upsell_new_bump['offer_accept_count'] = ! empty( $sales_stats_bump['offer_accept_count'] ) ? $sales_stats_bump['offer_accept_count'] : 0;
+
+		$mwb_upsell_new_bump['offer_remove_count'] = ! empty( $sales_stats_bump['offer_remove_count'] ) ? $sales_stats_bump['offer_remove_count'] : 0;
+
+		$mwb_upsell_new_bump['bump_success_count'] = ! empty( $sales_stats_bump['bump_success_count'] ) ? $sales_stats_bump['bump_success_count'] : 0;
+
+		$mwb_upsell_new_bump['bump_total_sales'] = ! empty( $sales_stats_bump['bump_total_sales'] ) ? $sales_stats_bump['bump_total_sales'] : 0;
+	}
+
 	// When Bump is saved for the first time so load default text Settings.
 	$mwb_upsell_bump_series = array();
 
@@ -239,7 +258,7 @@ $mwb_upsell_bump_schedule_options = array(
 <!-- For Single Bump. -->
 <form action="" method="POST">
 	<div class="mwb_upsell_table">
-		<table class="form-table mwb_upsell_bump_creation_setting" >
+		<table class="form-table mwb_upsell_bump_creation_setting">
 			<tbody>
 
 				<!-- Nonce field here. -->
@@ -308,7 +327,7 @@ $mwb_upsell_bump_schedule_options = array(
 						mwb_ubo_lite_help_tip( $description );
 
 						?>
-						
+
 						<select id="mwb_upsell_bump_target_ids_search" class="wc-bump-product-search" multiple="multiple" name="mwb_upsell_bump_target_ids[]" data-placeholder="<?php esc_attr_e( 'Search for a product&hellip;', 'upsell-order-bump-offer-for-woocommerce' ); ?>">
 
 							<?php
@@ -407,13 +426,13 @@ $mwb_upsell_bump_schedule_options = array(
 
 						// For earlier versions we will get a string over here.
 						if ( ! empty( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['mwb_upsell_bump_schedule'] ) && ! is_array( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['mwb_upsell_bump_schedule'] ) ) {
-							
+
 							// Whatever was the selected day, add as an array.
-							$mwb_ubo_selected_schedule = array( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ][ 'mwb_upsell_bump_schedule' ] );
-							
+							$mwb_ubo_selected_schedule = array( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['mwb_upsell_bump_schedule'] );
+
 						} else {
 
-							$mwb_ubo_selected_schedule = ! empty( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['mwb_upsell_bump_schedule'] ) ? ( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['mwb_upsell_bump_schedule'] ) : array( '0' ); 
+							$mwb_ubo_selected_schedule = ! empty( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['mwb_upsell_bump_schedule'] ) ? ( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['mwb_upsell_bump_schedule'] ) : array( '0' );
 						}
 
 						?>
@@ -422,7 +441,7 @@ $mwb_upsell_bump_schedule_options = array(
 
 							<?php foreach ( $mwb_upsell_bump_schedule_options as $key => $day ) : ?>
 
-								<option <?php echo in_array( $key, $mwb_ubo_selected_schedule ) ? 'selected' : '' ?> value="<?php echo esc_html( $key ); ?>"><?php echo esc_html( $day ); ?></option>
+								<option <?php echo in_array( $key, $mwb_ubo_selected_schedule ) ? 'selected' : ''; ?> value="<?php echo esc_html( $key ); ?>"><?php echo esc_html( $day ); ?></option>
 
 							<?php endforeach; ?>
 
@@ -430,11 +449,11 @@ $mwb_upsell_bump_schedule_options = array(
 					</td>
 				</tr>
 				<!-- Schedule your Bump end. -->
-
+				<!-- upsell-order-bump-offer-for-woocommerce -->
 				<!-- Replace with target start. -->
 				<tr valign="top">
 					<th scope="row" class="titledesc">
-						
+
 						<span class="mwb_ubo_premium_strip"><?php esc_html_e( 'Pro', 'upsell-order-bump-offer-for-woocommerce' ); ?></span>
 
 						<label for="mwb_ubo_offer_replace_target"><?php esc_html_e( 'Smart Offer Upgrade', 'upsell-order-bump-offer-for-woocommerce' ); ?></label>
@@ -450,10 +469,33 @@ $mwb_upsell_bump_schedule_options = array(
 						<label class="mwb-upsell-smart-offer-upgrade" for="mwb_ubo_offer_replace_target">
 						<input class="mwb-upsell-smart-offer-upgrade-wrap" type='checkbox' id='mwb_ubo_offer_replace_target' value='yes'>
 						<span class="upsell-smart-offer-upgrade-btn"></span>
-						</label>
-						
+						</label>	
 					</td>
 				</tr>
+				<!-- XXX -->
+				<tr valign="top">
+					<th scope="row" class="titledesc">
+
+						<span class="mwb_ubo_premium_strip"><?php esc_html_e( 'Pro', 'upsell-order-bump-offer-for-woocommerce' ); ?></span>
+
+						<label for="mwb_ubo_offer_add_custom_fields"><?php esc_html_e( 'Show Custom Form Fields', 'upsell-order-bump-offer-for-woocommerce' ); ?></label>
+					</th>
+
+					<td class="forminp forminp-text">
+
+						<?php
+							$attribute_description = esc_html__( 'This feature allows you to replace offer product to target product when added via order bump.', 'upsell-order-bump-offer-for-woocommerce' );
+							mwb_ubo_lite_help_tip( $attribute_description );
+						?>
+
+						<label class="mwb-upsell-smart-offer-upgrade" for="mwb_ubo_offer_add_custom_fields">
+						<input class="mwb-upsell-smart-offer-upgrade-wrap" type='checkbox' id='mwb_ubo_offer_add_custom_fields' value='yes'>
+						<span class="upsell-smart-offer-upgrade-btn"></span>
+						</label>
+
+					</td>
+				</tr>
+				<!-- ///////////////////////////////////////// -->
 				<!-- Replace with target end. -->
 
 			</tbody>
@@ -1124,7 +1166,7 @@ $mwb_upsell_bump_schedule_options = array(
 
 				<!-- Preview start -->
 				<div class="mwb_ubo_bump_offer_preview" >
-					
+
 					<?php
 
 					// Send current Bump Offer id.

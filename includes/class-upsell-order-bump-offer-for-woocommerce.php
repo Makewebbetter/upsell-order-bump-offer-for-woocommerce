@@ -123,6 +123,24 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-upsell-order-bump-offer-for-woocommerce-global-functions.php';
 
+		/**
+		 * The class responsible for the Onboarding functionality.
+		 */
+		if ( ! class_exists( 'Makewebbetter_Onboarding_Helper' ) ) {
+
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-makewebbetter-onboarding-helper.php';
+		}
+
+		if ( class_exists( 'Makewebbetter_Onboarding_Helper' ) ) {
+
+			$this->onboard = new Makewebbetter_Onboarding_Helper();
+		}
+
+		/**
+		 * The class responsible for Sales by Order Bump - Data handling and Stats.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'reporting/class-mwb-upsell-order-bump-report-sales-by-bump.php';
+
 		$this->loader = new Upsell_Order_Bump_Offer_For_Woocommerce_Loader();
 
 	}
@@ -167,7 +185,35 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 
 		// Rest functionality for order table.
 		$this->loader->add_action( 'manage_shop_order_posts_custom_column', $plugin_admin, 'show_bump_total_content', 20, 2 );
+		// Order Bump Report.
+		$this->loader->add_filter( 'woocommerce_admin_reports', $plugin_admin, 'add_order_bump_reporting' );
 
+		// Include Order Bump screen for Onboarding pop-up.
+		$this->loader->add_filter( 'mwb_helper_valid_frontend_screens', $plugin_admin, 'add_mwb_frontend_screens' );
+
+		// Include Order Bump plugin for Deactivation pop-up.
+		$this->loader->add_filter( 'mwb_deactivation_supported_slug', $plugin_admin, 'add_mwb_deactivation_screens' );
+
+		// Validate Pro version compatibility.
+		$this->loader->add_action( 'plugins_loaded', $plugin_admin, 'validate_version_compatibility' );
+
+		// Hook to ajax when submit button is clicked on popup for custom fields.
+		$this->loader->add_action( 'wp_ajax_make_custom_fields_with_user_input', $plugin_admin, 'make_custom_fields_with_user_input' );
+		$this->loader->add_action( 'wp_ajax_nopriv_make_custom_fields_with_user_input', $plugin_admin, 'make_custom_fields_with_user_input' );
+		// Hook to ajax when toggle is clicked, the rows will be appended to existing table.
+		$this->loader->add_action( 'wp_ajax_fetch_values_show_keys_in_table', $plugin_admin, 'fetch_values_show_keys_in_table' );
+		$this->loader->add_action( 'wp_ajax_nopriv_fetch_values_show_keys_in_table', $plugin_admin, 'fetch_values_show_keys_in_table' );
+		// Hook to delete a row from table
+		$this->loader->add_action( 'wp_ajax_delete_a_row_from_creation_page_table', $plugin_admin, 'delete_a_row_from_creation_page_table' );
+		$this->loader->add_action( 'wp_ajax_nopriv_delete_a_row_from_creation_page_table', $plugin_admin, 'delete_a_row_from_creation_page_table' );
+		// Hook to show form on the order page.
+		// $this->loader->add_filter( 'custom_form_inside_bump_hook', $plugin_admin, 'show_custom_form_on_checkout_page' );
+
+		// Hook to Insert value of custom field on checkout page into wp_woocommerce_order_itemmeta table.
+		// $this->loader->add_action( 'woocommerce_order_status_changed', $plugin_admin, 'is_express_delivery', 1, 1 );
+
+		// Hook to Show the value of custom field on the thankyou page.
+		// $this->loader->add_action( 'woocommerce_before_thankyou', $plugin_admin, 'show_value_demo' );
 	}
 
 	/**
@@ -184,7 +230,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 		// By default plugin will be enabled.
 		$mwb_upsell_bump_enable_plugin = ! empty( $mwb_ubo_global_options['mwb_bump_enable_plugin'] ) ? $mwb_ubo_global_options['mwb_bump_enable_plugin'] : 'on';
 
-		if ( 'on' == $mwb_upsell_bump_enable_plugin ) {
+		if ( 'on' === $mwb_upsell_bump_enable_plugin ) {
 
 			$plugin_public = new Upsell_Order_Bump_Offer_For_Woocommerce_Public( $this->get_plugin_name(), $this->get_version() );
 
@@ -226,6 +272,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 
 			// All mandatory functions to be called after adding offer product.
 			$this->loader->add_action( 'woocommerce_init', $plugin_public, 'woocommerce_init_ubo_functions' );
+
+			// Hide Order Bump meta from order items.
+			$this->loader->add_filter( 'woocommerce_order_item_get_formatted_meta_data', $plugin_public, 'hide_order_bump_meta' );
 		}
 	}
 
@@ -286,7 +335,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 
 		$mwb_ubo_offer_array_collection = get_option( 'mwb_ubo_bump_list', array() );
 
-		if ( mwb_ubo_lite_is_plugin_active( 'upsell-order-bump-offer-for-woocommerce-pro/upsell-order-bump-offer-for-woocommerce-pro.php' ) && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) ) {
+		if ( mwb_ubo_lite_if_pro_exists() && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) ) {
 
 			$mwb_upsell_bump_callname_lic = Upsell_Order_Bump_Offer_For_Woocommerce_Pro::$mwb_upsell_bump_lic_callback_function;
 
@@ -304,9 +353,16 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 			}
 		} else {
 
-			return array( key( $mwb_ubo_offer_array_collection ) => $mwb_ubo_offer_array_collection[ key( $mwb_ubo_offer_array_collection ) ] );
+			$single_first_bump = array( key( $mwb_ubo_offer_array_collection ) => $mwb_ubo_offer_array_collection[ key( $mwb_ubo_offer_array_collection ) ] );
+
+			// Unset Smart Offer Upgrade in case as it's a pro feature.
+			$single_first_bump[ key( $mwb_ubo_offer_array_collection ) ]['mwb_ubo_offer_replace_target'] = 'no';
+
+			// Unset custom fields if pro verison doesnot exist.
+			$single_first_bump[ key( $mwb_ubo_offer_array_collection ) ]['mwb_ubo_offer_add_custom_fields'] = 'no';
+
+			return $single_first_bump;
 		}
 	}
 
-	// End of class.
-}
+} // End of class.
