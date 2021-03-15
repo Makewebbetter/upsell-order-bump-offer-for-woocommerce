@@ -197,15 +197,6 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 		// Validate Pro version compatibility.
 		$this->loader->add_action( 'plugins_loaded', $plugin_admin, 'validate_version_compatibility' );
 
-		// Hook to ajax when submit button is clicked on popup for custom fields.
-		$this->loader->add_action( 'wp_ajax_make_custom_fields_with_user_input', $plugin_admin, 'make_custom_fields_with_user_input' );
-		$this->loader->add_action( 'wp_ajax_nopriv_make_custom_fields_with_user_input', $plugin_admin, 'make_custom_fields_with_user_input' );
-		// Hook to ajax when toggle is clicked, the rows will be appended to existing table.
-		$this->loader->add_action( 'wp_ajax_fetch_values_show_keys_in_table', $plugin_admin, 'fetch_values_show_keys_in_table' );
-		$this->loader->add_action( 'wp_ajax_nopriv_fetch_values_show_keys_in_table', $plugin_admin, 'fetch_values_show_keys_in_table' );
-		// Hook to delete a row from table
-		$this->loader->add_action( 'wp_ajax_delete_a_row_from_creation_page_table', $plugin_admin, 'delete_a_row_from_creation_page_table' );
-		$this->loader->add_action( 'wp_ajax_nopriv_delete_a_row_from_creation_page_table', $plugin_admin, 'delete_a_row_from_creation_page_table' );
 		// Hook to show form on the order page.
 		// $this->loader->add_filter( 'custom_form_inside_bump_hook', $plugin_admin, 'show_custom_form_on_checkout_page' );
 
@@ -275,6 +266,17 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 
 			// Hide Order Bump meta from order items.
 			$this->loader->add_filter( 'woocommerce_order_item_get_formatted_meta_data', $plugin_public, 'hide_order_bump_meta' );
+
+			// Update the values as item meta.
+			$this->loader->add_filter( 'wp_ajax_add_simple_offer_in_cart', $plugin_public, 'add_simple_offer_in_cart' );
+			$this->loader->add_filter( 'wp_ajax_nopriv_add_simple_offer_in_cart', $plugin_public, 'add_simple_offer_in_cart' );
+
+			// Hook to get the Order details when the place order button is clicked.
+			$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'temporary_function_to_get_order_id', 10, 1 );
+
+			// Ajax to remove bump offer.
+			$this->loader->add_action( 'wp_ajax_fetch_options_for_demo_purpose', $plugin_public, 'fetch_options_for_demo_purpose' );
+			$this->loader->add_action( 'wp_ajax_nopriv_fetch_options_for_demo_purpose', $plugin_public, 'fetch_options_for_demo_purpose' );
 		}
 	}
 

@@ -1,4 +1,28 @@
 jQuery(document).ready( function($) {
+    
+    // Function to fetch the vales of options table to check if the popup should be enabled or not.
+    // function show_correct_popup_on_bump_offer(){
+        var result_same_id_popup = '';
+        same_id_check = jQuery('.order_bump_id').val();
+        jQuery.ajax({
+
+            type    : 'post',
+            dataType: 'json',
+            url     : mwb_ubo_lite_public.ajaxurl,
+            data: { 
+                nonce         : mwb_ubo_lite_public.auth_nonce,
+                same_id_check : same_id_check,
+                action        : 'fetch_options_for_demo_purpose',
+            },  
+            success: function( msg ) {
+               a = JSON.stringify(msg); 
+               result_same_id_popup = a;
+            }
+        });
+    // }
+    
+
+
 
     // When bump is prepared we will get this data.
     var bump_id = '';
@@ -38,29 +62,33 @@ jQuery(document).ready( function($) {
      */
     $(document).on( 'click', '.add_offer_in_cart', function(e) {
 
-        order_bump_index = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
+        order_bump_index     = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
         parent_wrapper_class = '.mwb_ubo_wrapper_' + order_bump_index;
-        order_bump_id = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_id' ).val();
+        order_bump_id        = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_id' ).val();
 
         // Disable bump div.
         $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'pointer-events', 'none' );
-        $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'opacity', '0.4' );
+        $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'opacity', '0.1' );
 
         if ( $( parent_wrapper_class + ' .add_offer_in_cart' ).is( ':checked' ) ) {
-            // Code to check if custom fields are set to show on cart page starts.
-            
-            // Code to check if custom fields are set to show on cart page ends.
             // Show loader for Variable offers.
             if( 'variable' == $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id_type' ).val() ) {
-
                 $( '.mwb_bump_popup_loader' ).css( 'display','flex' );
+                is_variable_product = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id_type' ).val()
+            } else {
+                $( '.mwb_bump_popup_loader' ).css( 'display','flex' );
+                is_variable_product = '';
             }
 
-            bump_id = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id' ).val(); // offer product id.
-            bump_discount = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_discount' ).val();
-            bump_target_cart_key = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.target_id_cart_key' ).val();
-            smart_offer_upgrade = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_smo' ).val();
 
+            bump_id              = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id' ).val(); // offer product id.
+            bump_discount        = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_discount' ).val();
+            bump_target_cart_key = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.target_id_cart_key' ).val();
+            smart_offer_upgrade  = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_smo' ).val();
+            
+            // Variable to store all the values from the array.
+            var array_variable_store_all_values = [];
+            
             // Add product to cart.
             jQuery.ajax({
 
@@ -78,6 +106,7 @@ jQuery(document).ready( function($) {
 
                     // Index : index_{ digit }
                     bump_index: order_bump_index,
+                    is_variable_product : is_variable_product,
                 },
 
                 success: function( msg ) {
@@ -86,8 +115,10 @@ jQuery(document).ready( function($) {
                     if( msg['key'] == 'true' ) {
 
                         variation_popup_index = order_bump_index.replace( 'index_', '' );
+                        // Show price.
                         $( '.mwb_ubo_price_html_for_variation' ).html( msg['message'] );
                         $( '.mwb_bump_popup_loader' ).css('display','none');
+                        // Popup show.
                         $( '.mwb_bump_popup_' + variation_popup_index ).css('display','flex');
                         $('body').addClass( 'mwb_upsell_variation_pop_up_body' );
 
@@ -98,52 +129,36 @@ jQuery(document).ready( function($) {
                         if( default_price == '' ) {
                             default_price = $( '.mwb_ubo_price_html_for_variation' ).html();
                         }
+                      
                     }
 
                     // For simple Products and Variations.
                     else {
-                            
-                        // $( '.mwb_bump_popup_loader' ).css('display','none');
-                        // $('.mwb_bump_popup_custom_input_wrapper').css('display','flex');
-                        $( 'body' ).trigger( 'update_checkout' );
-                        $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'pointer-events', 'all' );
-                        $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'opacity', '1' );
-                        
-                        // Writtten these in the close button section below.
+                        // Variable to store values of the popup fields with same class name.
                        
-                        // $('#mwb_bump_popup_custom_input_submit').on('click',function(){
-                        //     var nameOfField        = $('#mwb_bump_popup_custom_input_name').val();
-                        //     var placeholderOfField = $('#mwb_bump_popup_custom_input_placeholder').val();
-                        //     var typeOfField        = $('#mwb_bump_popup_custom_input_type').val();
-                        //     if( nameOfField == '' || placeholderOfField == '' || typeOfField == '' ) {
-                        //         alert('One or more fields are empty');
-                        //     }
-                        // });
-                        // jQuery.ajax({
-                        //     type: 'post',
-                        //     dataType: 'json',
-                        //     url: mwb_ubo_lite_public.ajaxurl,
-                        //     data: { 
-                        //         nonce : mwb_ubo_lite_public.auth_nonce,
-                        //         action: 'make_custom_fields_with_user_input',
-                        //         name: nameOfField, // offer product id.
-                        //         placeholder: placeholderOfField,
-                        //         type: typeOfField,
-                        //     },
-                        //     success: function( message ) {
-                        //         console.log(message);
-                        //     }
-                        // });
-                        
-                      
-
-                        // When Reload is required.
-                        if( 'subs_reload' == msg ) {
-                            
-                            // Scroll Top and Reload.
-                            $("html, body").scrollTop( 300 );
-                            location.reload();
+                        $( '.mwb_bump_popup_loader' ).css('display','none');
+                        if( result_same_id_popup != 'false' ) {
+                            $('.mwb_bump_popup_custom_input_wrapper').css('display','flex');
                         }
+
+                        ////
+
+
+
+
+                        ////
+
+                        // $( 'body' ).trigger( 'update_checkout' );
+                        // $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'pointer-events', 'all' );
+                        // $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'opacity', '1' );
+
+                        // // When Reload is required.
+                        // if( 'subs_reload' == msg ) {
+                            
+                        //     // Scroll Top and Reload.
+                        //     $("html, body").scrollTop( 300 );
+                        //     location.reload();
+                        // }
                     }
                 } 
             });
@@ -172,23 +187,6 @@ jQuery(document).ready( function($) {
             });
             // $('.titledesc').hide();
         }
-    });
-/*==========================================================================
-                        Catch the value of custom field.
-============================================================================*/
-    /**
-     * CHECKBOX ADD TO CART [ works with simple product and product variations ].
-     */
-    $(document).on('click','#place_order',function(e){
-        var mobiles=$('#mwb_upsell_bump_custom_dynamic_checkout_field').val();
-        if(mobiles == undefined) {
-             return 0;
-        }
-        else {
-            document.cookie = encodeURI('customCookie') + "=" +  
-            escape(mobiles) + "; path=/";
-        } 
-            
     });
 /*=======================================================================
                     Select the variations in popup.
@@ -325,7 +323,7 @@ jQuery(document).ready( function($) {
         e.preventDefault();
 
         // Prevent mulitple clicks on this button.
-        $(this).prop( 'disabled', true );
+        // $(this).prop( 'disabled', true );
 
         order_bump_index = $(this).attr( 'offer_bump_index' );
         if( typeof order_bump_index === 'undefined' ) {
@@ -348,7 +346,7 @@ jQuery(document).ready( function($) {
         bump_target_cart_key = selected_order_bump.find('.target_id_cart_key').val();
         order_bump_id = selected_order_bump.find( '.order_bump_id' ).val();
         smart_offer_upgrade = selected_order_bump.find( '.order_bump_smo' ).val();
-
+        
         var variation_selected = '';
         jQuery( '.variation_id_selected' ).each(function(){
 
@@ -357,43 +355,165 @@ jQuery(document).ready( function($) {
                 variation_selected = jQuery(this).val();
             }
         });
-
-        jQuery.ajax({
-
-            type: 'post',
-            dataType: 'json',
-            url: mwb_ubo_lite_public.ajaxurl,
-            data: { 
-                nonce : mwb_ubo_lite_public.auth_nonce, 
-                action: 'add_variation_offer_in_cart' ,
-                id: variation_selected, // variation offer product id.
-                parent_id: bump_id, // variation offer parent product id.
-                discount: bump_discount,
-                order_bump_id: order_bump_id,
-                smart_offer_upgrade: smart_offer_upgrade,
-
-                // Index : { digit }
-                bump_index: order_bump_index,
-                bump_target_cart_key :bump_target_cart_key  
-            },
-            success: function( msg ) {
-                
-                $('body').removeClass( 'mwb_upsell_variation_pop_up_body' );
-                $( '.mwb_bump_popup_wrapper' ).css( 'display','none' );
-                $( 'body' ).trigger( 'update_checkout' );
-                $( parent_wrapper_class ).css( 'pointer-events', 'all' );
-                $( parent_wrapper_class ).css( 'opacity', '1' );
-                $('.mwb_ubo_bump_add_to_cart_button').prop( 'disabled', false );
-
-                // When Reload is required.
-                if( 'subs_reload' == msg ) {
-
-                    // Scroll Top and Reload.
-                    $("html, body").scrollTop( 300 );
-                    location.reload();
-                }
+        // array_variable_store_all_values = [];
+        var ready = true;
+        var data_arr = [];
+        var keys = 0;
+        // We will now fetch the values.
+        $('.mwb_bump_popup_custom_input_common_class_variation').each(function(){
+            // var this_id    = jQuery(this).attr('id');
+            obj = {};
+            if( jQuery(this).val() == ''){
+                alert('Value not set for field'+jQuery(this).attr('name'));
+                ready = false;
+                return ready;
+            } if(ready == true) {
+                // Push the values in an array.
+                obj.n  = jQuery(this).attr('name');
+                obj.i    = jQuery(this).attr('id');
+                obj.v = jQuery(this).val();
+                data_arr[keys] = obj;
+                keys++;
+                // v = jQuery(this).val();
+                // n = jQuery(this).attr('name');
+                // i = jQuery(this).attr('id');
+                // array_variable_store_all_values.push({id:i,name:n,value:v,variation_id:variation_selected});
             }
         });
+        if(data_arr.length != 0 && ready == true ) {
+            jQuery.ajax({
+
+                type: 'post',
+                dataType: 'json',
+                url: mwb_ubo_lite_public.ajaxurl,
+                data: { 
+                    nonce                : mwb_ubo_lite_public.auth_nonce, 
+                    action               : 'add_variation_offer_in_cart' ,
+                    id                   : variation_selected, // variation offer product id.
+                    parent_id            : bump_id, // variation offer parent product id.
+                    discount             : bump_discount,
+                    order_bump_id        : order_bump_id,
+                    smart_offer_upgrade  : smart_offer_upgrade,
+                    all_values           : data_arr,
+                    bump_index           : order_bump_index,
+                    bump_target_cart_key : bump_target_cart_key  
+                },
+                success: function( msg ) {
+                    console.log(JSON.stringify(msg))
+                    $('body').removeClass( 'mwb_upsell_variation_pop_up_body' );
+                    $( '.mwb_bump_popup_wrapper' ).css( 'display','none' );
+                    $( 'body' ).trigger( 'update_checkout' );
+                    $( parent_wrapper_class ).css( 'pointer-events', 'all' );
+                    $( parent_wrapper_class ).css( 'opacity', '1' );
+                    $('.mwb_ubo_bump_add_to_cart_button').prop( 'disabled', false );
+    
+                    // When Reload is required.
+                    if( 'subs_reload' == msg ) {
+    
+                        // Scroll Top and Reload.
+                        $("html, body").scrollTop( 300 );
+                        location.reload();
+                    }
+                }
+            });
+        }
+        
+    });
+/*==========================================================================
+                            Simple Popup Add to cart.
+============================================================================*/
+/**
+ * When the submit button is clicked on the popup on the checkout page for simple products, this will
+ * fetch the vales and call an ajax so that the process for adding the product to the cart
+ * can be completed.
+ * 
+ * IMPORTANT:- The ajax should run only when all the fields have been updated.
+ */
+    jQuery(document).on('click','#mwb_bump_checkout_popup',function(e){
+
+        e.preventDefault();
+        // Prevent mulitple clicks on this button.
+        order_bump_index     = $('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
+        parent_wrapper_class = '.mwb_ubo_wrapper_' + order_bump_index;
+        
+        // Order Bump Object.
+        var selected_order_bump = jQuery( parent_wrapper_class );
+
+        // Disable bump div.
+        $( selected_order_bump ).css( 'pointer-events', 'none' );
+        $( selected_order_bump ).css( 'opacity', '0.4' );
+
+        // Required Data.
+        bump_id = selected_order_bump.find( '.offer_shown_id' ).val();
+        bump_discount = selected_order_bump.find('.offer_shown_discount').val();
+        bump_target_cart_key = selected_order_bump.find('.target_id_cart_key').val();
+        order_bump_id = selected_order_bump.find( '.order_bump_id' ).val();
+        smart_offer_upgrade = selected_order_bump.find( '.order_bump_smo' ).val();
+
+        // TO check if any field is left empty.  
+        // Send custom fields data to first ajax , this will upload item meta.
+        var ready = true;
+        var data_arr = [];
+        var keys = 0;
+        $('.mwb_bump_popup_custom_input_common_class').each(function(){
+            // var this_id    = jQuery(this).attr('id');
+            obj = {};
+            if( jQuery(this).val() == ''){
+                alert('Value not set for field'+jQuery(this).attr('name'));
+                ready = false;
+                return ready;
+            } if(ready = true) {
+                // Push the values in an array.
+                obj.n  = jQuery(this).attr('name');
+                obj.i    = jQuery(this).attr('id');
+                obj.v = jQuery(this).val();
+                data_arr[keys] = obj;
+                keys++;
+            }
+        });
+        console.log(data_arr)
+        if(data_arr.length != 0 && ready == true ) {
+            var bump_product_id = jQuery('.offer_shown_id').val();
+            $.ajax({
+                    type: 'post',
+                    url: mwb_ubo_lite_public.ajaxurl,
+                    datatype : 'json',
+                    data: { 
+                        nonce : mwb_ubo_lite_public.auth_nonce,
+                        action: 'add_simple_offer_in_cart',
+                        id: bump_id, // offer product id.
+                        discount: bump_discount,
+                        bump_target_cart_key: bump_target_cart_key,
+                        order_bump_id: order_bump_id,
+                        smart_offer_upgrade: smart_offer_upgrade,
+                        // Index : index_{ digit }
+                        bump_index: order_bump_index,
+                        all_values: data_arr,
+                        bump_product_id : bump_product_id,
+                    }, 
+                    success: function( msg ) {
+                        $( '.mwb_bump_popup_custom_input_wrapper' ).css( 'display','none' );
+                        $( 'body' ).trigger( 'update_checkout' ); 
+                        $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'pointer-events', 'all' );
+                        $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'opacity', '1' );
+                        console.log(JSON.parse(msg));
+                        // When Reload is required.
+                        if( 'subs_reload' == msg ) {
+                            // Scroll Top and Reload.
+                            $("html, body").scrollTop( 300 );
+                            location.reload();
+                        }
+                }
+            });
+        }
+
+
+        // // // 
+        // if( ready == true ) {
+             // Since array_variable_store_all_values is an object, it needs to be stringyfied.
+            
+        // }
+         
     });
 
 /*==========================================================================
@@ -419,11 +539,8 @@ jQuery(document).ready( function($) {
     $('body').click
     (
       function(e){
-
         if( e.target.className.search( 'mwb_bump_popup_wrapper' ) == 0 ) {
-
             order_bump_index = e.target.className.replace( 'mwb_bump_popup_wrapper mwb_bump_popup_','' );
-
             $( '.mwb_ubo_wrapper_index_' + order_bump_index ).css( 'pointer-events', 'all' );
             $( '.mwb_ubo_wrapper_index_' + order_bump_index ).css( 'opacity', '1' );
             $( 'body' ).removeClass( 'mwb_upsell_variation_pop_up_body' );
@@ -440,14 +557,16 @@ jQuery(document).ready( function($) {
      * Custom field POP-UP JS.
      * To hide on click close.
      */
-    $(document).on( 'click', '.mwb_bump_popup_close', function(e) {
+    $(document).on( 'click', '.mwb_bump_popup_close_simple', function(e) {
+        
         order_bump_index = $(this).attr( 'offer_bump_index' );
-        $( 'body' ).trigger( 'update_checkout' );
         $( '.mwb_ubo_wrapper_index_' + order_bump_index ).css( 'pointer-events', 'all' );
         $( '.mwb_ubo_wrapper_index_' + order_bump_index ).css( 'opacity', '1' );
         $( 'body').removeClass( 'mwb_upsell_variation_pop_up_body' );
         $( '.mwb_bump_popup_' + order_bump_index ).css('display','none');
         $( '.mwb_ubo_wrapper_index_' + order_bump_index ).find( '.add_offer_in_cart' ).prop('checked', false);
+        //Adding the line here so that after closing the update action can be run else the popup was closing after split second.
+        //$( 'body' ).trigger( 'update_checkout' );
 
     });
     
@@ -455,16 +574,13 @@ jQuery(document).ready( function($) {
      $('body').click
      (
        function(e){
- 
          if( e.target.className.search( 'mwb_bump_popup_custom_input_wrapper' ) == 0 ) {
- 
-             e.target.className.replace( 'mwb_bump_popup_custom_input_wrapper mwb_bump_popup_','' );
-             order_bump_index = $(this).attr( 'offer_bump_index' );
+            order_bump_index = e.target.className.replace( 'mwb_bump_popup_custom_input_wrapper mwb_bump_popup_','' );
              $( '.mwb_ubo_wrapper_index_' + order_bump_index ).css( 'pointer-events', 'all' );
              $( '.mwb_ubo_wrapper_index_' + order_bump_index ).css( 'opacity', '1' );
              $( 'body' ).removeClass( 'mwb_upsell_variation_pop_up_body' );
-             $( '.mwb_bump_popup_' + order_bump_index ).css('display','none');
-            //  $( '.mwb_ubo_wrapper_index_' + order_bump_index ).find( '.add_offer_in_cart' ).prop('checked', false);
+             $( '.mwb_bump_popup_custom_input_wrapper' ).hide();
+             $( '.mwb_ubo_wrapper_index_' + order_bump_index ).find( '.add_offer_in_cart' ).prop('checked', false);
          }
        }
      );

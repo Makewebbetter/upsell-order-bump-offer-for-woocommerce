@@ -187,17 +187,17 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 					// wp_localize_script(
 					// 	'mwb_ubo_lite_add_new_offer_script',
 					// 	'mwb_ubo_lite_ajaxurl',
-					// 	admin_url( 'admin-ajax.php' ) 
+					// 	admin_url( 'admin-ajax.php' )
 					// );
 					wp_localize_script(
 						'mwb_ubo_lite_add_new_offer_script',
 						'mwb_ubo_lite_ajaxurl',
-						admin_url( 'admin-ajax.php' )
-						// array(
-						// 	'ajaxurl'       => admin_url( 'admin-ajax.php' ),
-						// 	'mobile_view' => wp_is_mobile(),
-						// 	'auth_nonce'  => wp_create_nonce( 'mwb_ubo_lite_nonce' ),
-						// )
+						// admin_url( 'admin-ajax.php' )
+						array(
+							'ajaxurl'       => admin_url( 'admin-ajax.php' ),
+							'mobile_view' => wp_is_mobile(),
+							'auth_nonce'  => wp_create_nonce( 'mwb_ubo_lite_nonce' ),
+						)
 					);
 				wp_enqueue_script( 'mwb_ubo_lite_sticky_js', plugin_dir_url( __FILE__ ) . 'js/jquery.sticky-sidebar.js', array( 'jquery' ), $this->version, false );
 			}
@@ -701,109 +701,6 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 
 
 	/**
-	 * Function to accept custom values such as name, placeholder,type from user and set those
-	 * values to woocommerce_admin_fields array parameter.
-	 */
-	public function make_custom_fields_with_user_input() {
-		$custom_input_array = get_option( 'custom_form_values_all_keys_collect', array() );
-		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
-		$name        = ! empty( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
-		$placeholder = ! empty( $_POST['placeholder'] ) ? sanitize_text_field( wp_unslash( $_POST['placeholder'] ) ) : '';
-		$type        = ! empty( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : '';
-		$description = ! empty( $_POST['description'] ) ? sanitize_text_field( wp_unslash( $_POST['description'] ) ) : '';
-		// Search if the value was already there in the database.
-
-		add_option(
-			'custom_form_values_' . $name,
-			array(
-				'name'        => $name,
-				'placeholder' => $placeholder,
-				'type'        => $type,
-				'description' => $description,
-			)
-		);
-		// If first time function is run option will be set else will be updated.
-		if ( empty( $custom_input_array ) ) {
-			array_push( $custom_input_array, $name );
-			add_option(
-				'custom_form_values_all_keys_collect',
-				$custom_input_array
-			);
-		} else {
-			$check_for_duplicacy = get_option( 'custom_form_values_all_keys_collect' );
-			// Checks for duplicate value in database.
-			foreach ( $check_for_duplicacy as $key => $value ) {
-				if ( $name === $value ) {
-					$result_message = 'Duplicate Value';
-					echo json_encode( $result_message, JSON_FORCE_OBJECT );
-					wp_die();
-				}
-			}
-			array_push( $custom_input_array, $name );
-			update_option(
-				'custom_form_values_all_keys_collect',
-				$custom_input_array
-			);
-		}
-		// $custom_input_array will contain all the names of previously entered values.
-		$result_message = 'Duplicate Value';
-		echo json_encode( $result_message, JSON_FORCE_OBJECT );
-		wp_die();
-	}
-
-	/**
-	 * Function to get the value of option and show it onto the table in bump creation window.
-	 *
-	 * @param [type] $custom_form_return
-	 * @return void
-	 */
-	public function fetch_values_show_keys_in_table() {
-		$return_array = array();
-		$return_array = get_option(
-			'custom_form_values_all_keys_collect',
-			'value not set'
-		);
-		echo json_encode( $return_array, JSON_FORCE_OBJECT);
-		wp_die();
-	}
-	/**
-	 * Function to delete a particular row from the table on creation page of order bump.
-	 */
-	public function delete_a_row_from_creation_page_table() {
-		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
-		$id = ! empty( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
-		$updated_array = array();
-		$updated_array = get_option(
-			'custom_form_values_all_keys_collect',
-			'value not set'
-		);
-		// Delete the id from the array.
-		unset( $updated_array[ $id ] );
-		$updated_array = array_values( $updated_array );
-		update_option(
-			'custom_form_values_all_keys_collect',
-			$updated_array
-		);
-		// $a = count( get_option( 'custom_form_values_all_keys_collect' ) );
-		// foreach ( $a as $key => $value ) {
-		// 	$arr         = get_option( 'custom_form_values_' . $value );
-		// 	$mwb_upsell_bump_custom_field_name        = $arr['name'];
-		// 	$mwb_upsell_bump_custom_field_placeholder = $arr['placeholder'];
-		// 	$mwb_upsell_bump_custom_field_type        = $arr['type'];
-		// 	$mwb_upsell_bump_custom_field_description = $arr['description'];
-		// 	print_r( $mwb_upsell_bump_custom_field_name );
-		// 	print_r( $mwb_upsell_bump_custom_field_placeholder );
-		// 	print_r( $mwb_upsell_bump_custom_field_type );
-		// 	print_r( $mwb_upsell_bump_custom_field_description );
-		// 	wp_die();
-		// }
-		// echo $a;
-		wp_die();
-		// print_r( $a );
-	}
-
-
-	/**
 	 * Function to show the form on checkout page if the option is enabled.
 	 *
 	 * @param name $custom_form_return used to get the order id.
@@ -811,8 +708,8 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 	// public function show_custom_form_on_checkout_page( $custom_form_return ) {
 	// 	$custom_form_return = '';
 
-	// 	// Approach one.
-	// 	$custom_form = array(
+	// Approach one.
+	// $custom_form = array(
 	// 						array(
 	// 							'name' => __( 'Leaving, so soon?', 'woocommerce' ),
 	// 							'type' => 'title',

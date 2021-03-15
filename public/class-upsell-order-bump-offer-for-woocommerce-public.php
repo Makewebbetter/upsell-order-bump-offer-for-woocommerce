@@ -176,16 +176,14 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		$bump_target_cart_key  = ! empty( $_POST['bump_target_cart_key'] ) ? sanitize_text_field( wp_unslash( $_POST['bump_target_cart_key'] ) ) : '';
 		$order_bump_id         = ! empty( $_POST['order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['order_bump_id'] ) ) : '';
 		$smart_offer_upgrade   = ! empty( $_POST['smart_offer_upgrade'] ) ? sanitize_text_field( wp_unslash( $_POST['smart_offer_upgrade'] ) ) : '';
-		// XXX.
-		$custom_fields_add = ! empty( $_POST['custom_fields_add'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_fields_add'] ) ) : '';
-		// XXX.
-		$cart_item_data = array(
+		// $custom_fields_add     = ! empty( $_POST['custom_fields_add'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_fields_add'] ) ) : '';
+		$cart_item_data        = array(
 			'mwb_ubo_offer_product' => true,
-			'mwb_ubo_offer_index' => $bump_index,
-			'mwb_ubo_bump_id' => $order_bump_id,
-			'mwb_discounted_price' => $bump_discounted_price,
-			'mwb_ubo_target_key' => $bump_target_cart_key,
-			'flag_' . uniqid() => true,
+			'mwb_ubo_offer_index'   => $bump_index,
+			'mwb_ubo_bump_id'       => $order_bump_id,
+			'mwb_discounted_price'  => $bump_discounted_price,
+			'mwb_ubo_target_key'    => $bump_target_cart_key,
+			'flag_' . uniqid()      => true,
 		);
 
 		$_product = wc_get_product( $bump_product_id );
@@ -212,55 +210,39 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		} elseif ( ! empty( $_product ) ) {
 
 			// If simple product or any single variations.
-			// Add to cart the same.
-
-			$bump_offer_cart_item_key = WC()->cart->add_to_cart( $bump_product_id, $quantity = 1, $variation_id = 0, $variation = array(), $cart_item_data );
-
-			// Add Order Bump Offer Accept Count for the respective Order Bump.
-			$sales_by_bump = new Mwb_Upsell_Order_Bump_Report_Sales_By_Bump( $order_bump_id );
-			$sales_by_bump->add_offer_accept_count();
-
-			WC()->session->set( 'bump_offer_status', 'added' );
-			WC()->session->set( "bump_offer_status_$bump_index", $bump_offer_cart_item_key );
-
-			// Smart offer Upgrade.
-			if ( mwb_ubo_lite_if_pro_exists() && 'yes' === $smart_offer_upgrade ) {
-
-				// Get all saved bumps.
-				$mwb_ubo_bump_callback          = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_upsell_bump_list_callback_function; // Checks the validity of the license of the plugin.
-				$mwb_ubo_offer_array_collection = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_ubo_bump_callback();
-
-				$encountered_bump_array = ! empty( $mwb_ubo_offer_array_collection[ $order_bump_id ] ) ? $mwb_ubo_offer_array_collection[ $order_bump_id ] : array();
-
-				$mwb_upsell_bump_replace_target = ! empty( $encountered_bump_array['mwb_ubo_offer_replace_target'] ) ? $encountered_bump_array['mwb_ubo_offer_replace_target'] : '';
-
-				if ( 'yes' == $mwb_upsell_bump_replace_target && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) && method_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro', 'mwb_ubo_upgrade_offer' ) ) {
-
-					Upsell_Order_Bump_Offer_For_Woocommerce_Pro::mwb_ubo_upgrade_offer( $bump_offer_cart_item_key, $bump_target_cart_key );
-				}
-			}
-			// XXX.
-			// Custom form show.
-			if ( mwb_ubo_lite_if_pro_exists() && 'yes' === $custom_fields_add ) {
-
-				// Get all saved bumps.
-				$mwb_ubo_bump_callback          = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_upsell_bump_list_callback_function;
-				$mwb_ubo_offer_array_collection = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_ubo_bump_callback();
-
-				$encountered_bump_array = ! empty( $mwb_ubo_offer_array_collection[ $order_bump_id ] ) ? $mwb_ubo_offer_array_collection[ $order_bump_id ] : array();
-
-				$mwb_upsell_bump_custom_fields = ! empty( $encountered_bump_array['mwb_ubo_offer_add_custom_fields'] ) ? $encountered_bump_array['mwb_ubo_offer_add_custom_fields'] : '';
-
-				if ( 'yes' == $mwb_upsell_bump_custom_fields && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) && method_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro', 'mwb_ubo_upgrade_offer' ) ) {
-
-					Upsell_Order_Bump_Offer_For_Woocommerce_Pro::mwb_ubo_upgrade_offer( $bump_offer_cart_item_key, $bump_target_cart_key );
-				}
-			}
-			// XXX.
-
+			$response = array(
+				'key' => 'simple',
+			);
 			echo json_encode( $added );
-		}
 
+			// BACKUP.
+			// $bump_offer_cart_item_key = WC()->cart->add_to_cart( $bump_product_id, $quantity = 1, $variation_id = 0, $variation = array(), $cart_item_data );
+
+			// // Add Order Bump Offer Accept Count for the respective Order Bump.
+			// $sales_by_bump = new Mwb_Upsell_Order_Bump_Report_Sales_By_Bump( $order_bump_id );
+			// $sales_by_bump->add_offer_accept_count();
+
+			// WC()->session->set( 'bump_offer_status', 'added' );
+			// WC()->session->set( "bump_offer_status_$bump_index", $bump_offer_cart_item_key );
+
+			// // Smart offer Upgrade.
+			// if ( mwb_ubo_lite_if_pro_exists() && 'yes' === $smart_offer_upgrade ) {
+
+			// 	// Get all saved bumps.
+			// 	$mwb_ubo_bump_callback          = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_upsell_bump_list_callback_function; // Checks the validity of the license of the plugin.
+			// 	$mwb_ubo_offer_array_collection = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_ubo_bump_callback();
+
+			// 	$encountered_bump_array = ! empty( $mwb_ubo_offer_array_collection[ $order_bump_id ] ) ? $mwb_ubo_offer_array_collection[ $order_bump_id ] : array();
+
+			// 	$mwb_upsell_bump_replace_target = ! empty( $encountered_bump_array['mwb_ubo_offer_replace_target'] ) ? $encountered_bump_array['mwb_ubo_offer_replace_target'] : '';
+
+			// 	if ( 'yes' == $mwb_upsell_bump_replace_target && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) && method_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro', 'mwb_ubo_upgrade_offer' ) ) {
+
+			// 		Upsell_Order_Bump_Offer_For_Woocommerce_Pro::mwb_ubo_upgrade_offer( $bump_offer_cart_item_key, $bump_target_cart_key );
+			// 	}
+			// }
+			// BACKUP.
+		}
 		wp_die();
 	}
 
@@ -367,11 +349,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 					'message' => mwb_ubo_lite_custom_price_html( $variation_id, $bump_offer_discount ),
 					'image' => $bump_var_image,
 				);
-
 				echo json_encode( $response );
 			}
 		}
-
 		wp_die();
 	}
 
@@ -395,22 +375,21 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 		// Contains target cart key.
 		$bump_target_cart_key = ! empty( $_POST['bump_target_cart_key'] ) ? sanitize_text_field( wp_unslash( $_POST['bump_target_cart_key'] ) ) : '';
+		$bump_index           = ! empty( $_POST['bump_index'] ) || '0' == $_POST['bump_index'] ? sanitize_text_field( wp_unslash( $_POST['bump_index'] ) ) : '';
+		$order_bump_id        = ! empty( $_POST['order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['order_bump_id'] ) ) : '';
+		$smart_offer_upgrade  = ! empty( $_POST['smart_offer_upgrade'] ) ? sanitize_text_field( wp_unslash( $_POST['smart_offer_upgrade'] ) ) : '';
+		$values               = $_POST['all_values'];
+		// $all_values           = ! empty( $_POST['all_values'] ) ? sanitize_text_field( wp_unslash( $_POST['all_values'] ) ) : '';
+		$custom_fields_add    = ! empty( $_POST['custom_fields_add'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_fields_add'] ) ) : '';
 
-		$bump_index = ! empty( $_POST['bump_index'] ) || '0' == $_POST['bump_index'] ? sanitize_text_field( wp_unslash( $_POST['bump_index'] ) ) : '';
-
-		$order_bump_id = ! empty( $_POST['order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['order_bump_id'] ) ) : '';
-		$smart_offer_upgrade = ! empty( $_POST['smart_offer_upgrade'] ) ? sanitize_text_field( wp_unslash( $_POST['smart_offer_upgrade'] ) ) : '';
-		// XXX.
-		$custom_fields_add = ! empty( $_POST['custom_fields_add'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_fields_add'] ) ) : '';
-		// XXX.
 		// Now safe to add to cart.
 		$cart_item_data = array(
 			'mwb_ubo_offer_product' => true,
-			'mwb_discounted_price' => $bump_offer_discount,
-			'flag_' . uniqid() => true,
-			'mwb_ubo_offer_index' => 'index_' . $bump_index,
-			'mwb_ubo_bump_id' => $order_bump_id,
-			'mwb_ubo_target_key' => $bump_target_cart_key,
+			'mwb_discounted_price'  => $bump_offer_discount,
+			'flag_' . uniqid()      => true,
+			'mwb_ubo_offer_index'   => 'index_' . $bump_index,
+			'mwb_ubo_bump_id'       => $order_bump_id,
+			'mwb_ubo_target_key'    => $bump_target_cart_key,
 		);
 
 		$_product = wc_get_product( $variation_id );
@@ -448,28 +427,117 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 				Upsell_Order_Bump_Offer_For_Woocommerce_Pro::mwb_ubo_upgrade_offer( $bump_offer_cart_item_key, $bump_target_cart_key );
 			}
 		}
-		// XXX.
-		if ( mwb_ubo_lite_if_pro_exists() && 'yes' == $custom_fields_add ) {
+		// if ( mwb_ubo_lite_if_pro_exists() && 'yes' == $custom_fields_add ) {
+
+		// 	// Get all saved bumps.
+		// 	$mwb_ubo_bump_callback = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_upsell_bump_list_callback_function;
+		// 	$mwb_ubo_offer_array_collection = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_ubo_bump_callback();
+
+		// 	$encountered_bump_array = ! empty( $mwb_ubo_offer_array_collection[ $order_bump_id ] ) ? $mwb_ubo_offer_array_collection[ $order_bump_id ] : array();
+
+		// 	$mwb_upsell_bump_custom_fields = ! empty( $encountered_bump_array['mwb_ubo_offer_add_custom_fields'] ) ? $encountered_bump_array['mwb_ubo_offer_add_custom_fields'] : '';
+
+		// 	if ( 'yes' == $mwb_upsell_bump_custom_fields && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) && method_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro', 'mwb_ubo_upgrade_offer' ) ) {
+
+		// 		Upsell_Order_Bump_Offer_For_Woocommerce_Pro::mwb_ubo_upgrade_offer( $bump_offer_cart_item_key, $bump_target_cart_key );
+		// 	}
+		// }
+
+		update_option( 'order_complete_show_custom_values', $values );
+		echo( json_encode( $added ) );
+		wp_die();
+	}
+
+	/**
+	 * Upload the values from custom fields into the item meta database for simple products.
+	 *
+	 * @return void
+	 */
+	public function add_simple_offer_in_cart() {
+		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
+
+		// The id of the offer to be added.
+		$bump_product_id       = ! empty( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
+		$bump_discounted_price = ! empty( $_POST['discount'] ) ? sanitize_text_field( wp_unslash( $_POST['discount'] ) ) : '';
+		$bump_index            = ! empty( $_POST['bump_index'] ) ? sanitize_text_field( wp_unslash( $_POST['bump_index'] ) ) : '';
+		$bump_target_cart_key  = ! empty( $_POST['bump_target_cart_key'] ) ? sanitize_text_field( wp_unslash( $_POST['bump_target_cart_key'] ) ) : '';
+		$order_bump_id         = ! empty( $_POST['order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['order_bump_id'] ) ) : '';
+		$smart_offer_upgrade   = ! empty( $_POST['smart_offer_upgrade'] ) ? sanitize_text_field( wp_unslash( $_POST['smart_offer_upgrade'] ) ) : '';
+		// $custom_fields_add     = ! empty( $_POST['custom_fields_add'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_fields_add'] ) ) : '';
+		$cart_item_data        = array(
+			'mwb_ubo_offer_product' => true,
+			'mwb_ubo_offer_index'   => $bump_index,
+			'mwb_ubo_bump_id'       => $order_bump_id,
+			'mwb_discounted_price'  => $bump_discounted_price,
+			'mwb_ubo_target_key'    => $bump_target_cart_key,
+			'flag_' . uniqid()      => true,
+		);
+
+		$_product = wc_get_product( $bump_product_id );
+
+		$added = 'added';
+
+		if ( mwb_ubo_lite_reload_required_after_adding_offer( $_product ) ) {
+
+			$added = 'subs_reload';
+		}
+
+		$bump_offer_cart_item_key = WC()->cart->add_to_cart( $bump_product_id, $quantity = 1, $variation_id = 0, $variation = array(), $cart_item_data );
+
+		// Add Order Bump Offer Accept Count for the respective Order Bump.
+		$sales_by_bump = new Mwb_Upsell_Order_Bump_Report_Sales_By_Bump( $order_bump_id );
+		$sales_by_bump->add_offer_accept_count();
+
+		WC()->session->set( 'bump_offer_status', 'added' );
+		WC()->session->set( "bump_offer_status_$bump_index", $bump_offer_cart_item_key );
+
+		// Smart offer Upgrade.
+		if ( mwb_ubo_lite_if_pro_exists() && 'yes' === $smart_offer_upgrade ) {
 
 			// Get all saved bumps.
-			$mwb_ubo_bump_callback = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_upsell_bump_list_callback_function;
+			$mwb_ubo_bump_callback          = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_upsell_bump_list_callback_function; // Checks the validity of the license of the plugin.
 			$mwb_ubo_offer_array_collection = Upsell_Order_Bump_Offer_For_Woocommerce::$mwb_ubo_bump_callback();
 
 			$encountered_bump_array = ! empty( $mwb_ubo_offer_array_collection[ $order_bump_id ] ) ? $mwb_ubo_offer_array_collection[ $order_bump_id ] : array();
 
-			$mwb_upsell_bump_custom_fields = ! empty( $encountered_bump_array['mwb_ubo_offer_add_custom_fields'] ) ? $encountered_bump_array['mwb_ubo_offer_add_custom_fields'] : '';
+			$mwb_upsell_bump_replace_target = ! empty( $encountered_bump_array['mwb_ubo_offer_replace_target'] ) ? $encountered_bump_array['mwb_ubo_offer_replace_target'] : '';
 
-			if ( 'yes' == $mwb_upsell_bump_custom_fields && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) && method_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro', 'mwb_ubo_upgrade_offer' ) ) {
+			if ( 'yes' == $mwb_upsell_bump_replace_target && class_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro' ) && method_exists( 'Upsell_Order_Bump_Offer_For_Woocommerce_Pro', 'mwb_ubo_upgrade_offer' ) ) {
 
 				Upsell_Order_Bump_Offer_For_Woocommerce_Pro::mwb_ubo_upgrade_offer( $bump_offer_cart_item_key, $bump_target_cart_key );
 			}
 		}
-		// XXX.
-
+		$all_values = $_POST['all_values'];
+		// Deocode the JSON string into an associative array.
+		// $bump_product_id = $_POST['bump_product_id'];
+		update_option( 'order_complete_show_custom_values', $all_values );
 		echo json_encode( $added );
 		wp_die();
 	}
 
+	/**
+	 * Function to get the order id in the function so that we can update the item meta succesfully.
+	 */
+	public function temporary_function_to_get_order_id( $order_id ) {
+		$order           = new WC_Order( $order_id );
+		$items           = $order->get_items();
+		// This will give us the item id(item id is id with respect to the Order) of the bump product.
+		// Item ID of the Bump product.
+		$bump_item_id = array_key_last( $items );
+		$bump_item    = end( $items );
+		// Product ID of the bump product.
+		$bump_product_id = $bump_item->get_product_id();
+		// Order ID of the Bump.
+		$bump_order_id = $bump_item->get_order_id();
+		$opt           = get_option( 'order_complete_show_custom_values' );
+		// $opt is array of objects, we will convert it to associative array before storing.
+		$json_opt  = json_encode( $opt );
+		$array_opt = json_decode( $json_opt, true );
+		foreach ( $array_opt as $key => $value ) {
+			// Foreach because item meta does not show full array on the thankyou page.
+			wc_update_order_item_meta( $bump_item_id, $value['n'], $value['v'] );
+		}
+	}
 	/**
 	 * Disabling the offer quantity for bump product in Cart page.
 	 *
@@ -1231,5 +1299,31 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		mwb_ubo_session_destroy();
 	}
 
+
+
+	/**
+	 * Demo function to check the vales of options table
+	 *
+	 * @return id Yes or No that will tell us to show bump popup or not.
+	 */
+	public function fetch_options_for_demo_purpose() {
+		$same_id_check = isset( $_POST['same_id_check'] ) ? $_POST['same_id_check'] : '';
+		if ( '' == $same_id_check ) {
+			return;
+		}
+		$option_bump_list = get_option( 'mwb_ubo_bump_list' );
+		foreach ( $option_bump_list as $key => $value ) {
+			if ( $key == $same_id_check ) {
+				if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
+					$data = 'yes';
+					echo json_encode( $data );
+					wp_die();
+				}
+			}
+		}
+		$data = false;
+		echo json_encode( $data );
+		wp_die();
+	}
 	// End of class.
 }
