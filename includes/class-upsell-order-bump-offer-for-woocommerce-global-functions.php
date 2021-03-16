@@ -24,7 +24,6 @@ function mwb_ubo_lite_if_pro_exists() {
 
 	return false;
 }
-
 /**
  * Checks Whether if Pro version is incompatible.
  *
@@ -683,6 +682,26 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 	$bumphtml .= '<input type="text" class ="order_bump_index" value="index_' . $order_bump_key . '">';
 	$bumphtml .= '<input type="text" class ="order_bump_id" value="' . $encountered_order_bump_id . '">';
 
+	// Hidden field to specify whether to show custom fields or not for a bump.
+	// Check if custom form is enabled for this particular Order bump.
+	$option_bump_list = get_option( 'mwb_ubo_bump_list' );
+	foreach ( $option_bump_list as $key => $value ) {
+		if ( $key == $encountered_order_bump_id ) {
+			if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
+				$bumphtml .= '<input type="text" class ="custom_fields_for_orderbump_toggle" value="show">';
+			} else {
+				$bumphtml .= '<input type="text" class ="custom_fields_for_orderbump_toggle" value="hide">';
+			}
+		}
+	}
+
+	if ( mwb_ubo_lite_if_pro_exists() ) {
+		// That means the pro version is activated.
+		$bumphtml .= '<input type="text" id="bump_hidden_check_pro" class="check_if_pro_exists" value="active">';
+	} else {
+		// Pro is not activated.
+		$bumphtml .= '<input type="text" id="bump_hidden_check_pro" class="check_if_pro_exists" value="inactive">';
+	}
 	$offer_product = wc_get_product( $bump['id'] );
 
 	if ( ! empty( $offer_product ) && is_object( $offer_product ) && $offer_product->has_child() ) {
@@ -1239,12 +1258,12 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 								// Function to return variations select html.
 								$variation_dropdown = mwb_ubo_lite_show_variation_dropdown(
 									array(
-										'options' => $options,
-										'attribute' => $attribute_name,
-										'product' => $product,
-										'selected' => '',
-										'id'    => 'attribute_' . strtolower( $attribute_name ),
-										'class' => 'mwb_upsell_offer_variation_select',
+										'options'          => $options,
+										'attribute'        => $attribute_name,
+										'product'          => $product,
+										'selected'         => '',
+										'id'               => 'attribute_' . strtolower( $attribute_name ),
+										'class'            => 'mwb_upsell_offer_variation_select',
 										'order_bump_index' => $order_bump_index,
 									)
 								);
@@ -1258,20 +1277,35 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 					<?php endforeach; ?>
 					<!-- Custom fields with loop will be shown here starts. -->
 					<!-- VARIATION -->
+
+					<!-- The loop should run only when the pro version is enabled and the custom fields set option is set. -->
 					<?php
-					$all_values = get_option( 'custom_form_values_all_keys_collect', false );
-					foreach ( $all_values as $key => $value ) {
-						$arr = get_option( 'custom_form_values_' . $value );
-						if ( $order_bump_index == $arr['order_bump_id'] ) {
-							$this_name = $arr['name'];
-							?>
-						<!-- Custom input field name. -->
-						<label class="mwb_ubo_price_html_for_variations" for=<?php echo $arr['name']; ?> ><?php echo esc_html( $arr['name'] ); ?></label>
-						<input type=<?php echo $arr['type']; ?> placeholder=<?php echo $arr['placeholder']; ?> class="mwb_bump_popup_custom_input_common_class_variation"  id="mwb_bump_popup_custom_input_<?php echo $arr['name']; ?>" name=<?php echo $arr['name']; ?> required ><br><br>
-							<?php
+					// If pro exists.
+					if ( mwb_ubo_lite_if_pro_exists() ) {
+						// If option to show the custom fields is also set.
+						$option_bump_list = get_option( 'mwb_ubo_bump_list' );
+						foreach ( $option_bump_list as $key => $value ) {
+							if ( $key == $order_bump_index ) {
+								if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
+									// Both conditions satisfied.
+									// Match the index and show the input fields that were assigned to a particular Order Bump.
+									$all_values = get_option( 'custom_form_values_all_keys_collect', false );
+									foreach ( $all_values as $key => $value ) {
+										$arr = get_option( 'custom_form_values_' . $value );
+										if ( $order_bump_index == $arr['order_bump_id'] ) {
+											?>
+										<!-- Custom input field name. -->
+										<label class="mwb_ubo_price_html_for_variations" for=<?php echo $arr['name']; ?> ><?php echo esc_html( $arr['name'] ); ?></label>
+										<input type = <?php echo $arr['type']; ?> placeholder = <?php echo $arr['placeholder']; ?> class = "mwb_bump_popup_custom_input_common_class_variation"  id="mwb_bump_popup_custom_input_<?php echo $arr['name']; ?>" name=<?php echo $arr['name']; ?> required ><br><br>
+											<?php
+										}
+									}
+								}
+							}
 						}
 					}
 					?>
+
 					<!-- Custom fields with loop ends -->
 					<!-- Add to cart button starts. -->
 					<button name="add-to-cart" class="single_add_to_cart_button button alt mwb_ubo_bump_add_to_cart_button" offer_bump_index = <?php echo esc_html( $order_bump_index ); ?> >
