@@ -560,6 +560,13 @@ jQuery(document).ready( function($) {
 	    $("#mwb_upsell_bump_creation_setting_save").click();
 	});
 
+	$("input[name='mwb_upsell_bump_offer_discount_price']").on('blur',function(){
+		if($(this).val() < 0){
+			$(this).val('');
+			alert('Negative values will not be submitted');
+		}
+	})
+
 	// Reflect bump name input value.
 	$(".mwb_upsell_offer_input_type").on("change paste keyup", function() {
 

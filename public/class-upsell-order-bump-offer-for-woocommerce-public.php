@@ -297,13 +297,12 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		$product = wc_get_product( $bump_offer_id );
 
 		if ( empty( $product ) ) {
-
 			echo json_encode( esc_html__( 'Product Not Found.', 'upsell-order-bump-offer-for-woocommerce' ) );
 			return;
 		}
 
-		$product_data_store = new WC_Product_Data_Store_CPT();
-		$variation_id = $product_data_store->find_matching_product_variation( $product, $attributes_selected_options );
+		$product_data_store         = new WC_Product_Data_Store_CPT();
+		$variation_id               = $product_data_store->find_matching_product_variation( $product, $attributes_selected_options );
 		$selected_variation_product = wc_get_product( $variation_id );
 
 		// Image to reflect on select change.
@@ -311,7 +310,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 		if ( ! empty( $image_id ) ) {
 
-			$html = wc_get_gallery_image_html( $image_id, true );
+			$html           = wc_get_gallery_image_html( $image_id, true );
 			$bump_var_image = apply_filters( 'woocommerce_single_product_image_thumbnail_html', $html, $image_id );
 
 		} else {
@@ -324,9 +323,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		if ( empty( $variation_id ) || empty( $selected_variation_product ) ) {
 
 			$response = array(
-				'key' => 'not_available',
+				'key'     => 'not_available',
 				'message' => '<p class="stock out-of-stock">' . esc_html__( 'Sorry, this variation is not available.', 'upsell-order-bump-offer-for-woocommerce' ) . '</p>',
-				'image' => $bump_var_image,
+				'image'   => $bump_var_image,
 			);
 			echo json_encode( $response );
 
@@ -526,7 +525,8 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	}
 
 	/**
-	 * Function to get the order id in the function so that we can update the item meta succesfully.
+	 * Function to get the order id in the function so that we can update the item meta
+	 * succesfully.
 	 */
 	public function temporary_function_to_get_order_id( $order_id ) {
 		$order           = new WC_Order( $order_id );
@@ -543,10 +543,12 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		// $opt is array of objects, we will convert it to associative array before storing.
 		$json_opt  = json_encode( $opt );
 		$array_opt = json_decode( $json_opt, true );
+
 		foreach ( $array_opt as $key => $value ) {
 			// Foreach because item meta does not show full array on the thankyou page.
 			wc_update_order_item_meta( $bump_item_id, $value['n'], $value['v'] );
 		}
+
 	}
 	/**
 	 * Disabling the offer quantity for bump product in Cart page.

@@ -272,7 +272,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 			$this->loader->add_filter( 'wp_ajax_nopriv_add_simple_offer_in_cart', $plugin_public, 'add_simple_offer_in_cart' );
 
 			// Hook to get the Order details when the place order button is clicked.
-			$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'temporary_function_to_get_order_id', 10, 1 );
+			if ( mwb_ubo_lite_if_pro_exists() ) {
+				$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'temporary_function_to_get_order_id', 10, 1 );
+			}
 
 			// Ajax to remove bump offer.
 			$this->loader->add_action( 'wp_ajax_fetch_options_for_demo_purpose', $plugin_public, 'fetch_options_for_demo_purpose' );

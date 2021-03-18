@@ -1167,6 +1167,7 @@ function mwb_ubo_lite_show_custom_fields_popup( $product = '', $order_bump_index
 					?>
 				<!-- Custom input field name. -->
 				<span class="mwb_ubo_price_html_for_variation" offer_bump_index = <?php echo esc_html( $order_bump_index ); ?> ></span>
+
 				<label class="mwb_ubo_price_html_for_variation" for=<?php echo $arr['name']; ?> ><?php echo esc_html( $arr['name'] ); ?></label>
 				<input type=<?php echo $arr['type']; ?> placeholder=<?php echo $arr['placeholder']; ?> class="mwb_bump_popup_custom_input_common_class"  id="mwb_bump_popup_custom_input_<?php echo $arr['name']; ?>" name=<?php echo $arr['name']; ?> ><br><br>
 					<?php
@@ -1248,7 +1249,6 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 
 						<div class="mwb_ubo_input_row">
 							<p class="mwb_ubo_bump_attributes_name">
-
 								<!-- In case slug is encountered. -->
 								<?php $show_title = str_replace( 'pa_', '', $attribute_name ); ?>
 								<?php $attribute_name = str_replace( ' ', '-', $attribute_name ); ?>
