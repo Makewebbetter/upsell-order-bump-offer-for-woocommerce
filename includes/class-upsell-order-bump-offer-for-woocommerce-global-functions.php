@@ -25,6 +25,20 @@ function mwb_ubo_lite_if_pro_exists() {
 	return false;
 }
 /**
+ *  Function to fetch the Unique ID from mwb_ubo_bump_list associated with this bump.
+ */
+function mwb_ubo_lite_fetch_unique_id( $mwb_upsell_bump_id ) {
+	$mwb_created_upsell_bumps = get_option( 'mwb_ubo_bump_list', array() );
+	if ( ! empty( $mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['mwb_upsell_bump_used_count'] ) ) {
+		$unique_bump_id = $mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['mwb_upsell_bump_used_count'];
+	} else {
+		print_r( 'Could not generate the Unqiue ID for this Order Bump.' );
+		$unique_bump_id = 0;
+	}
+	return $unique_bump_id;
+}
+
+/**
  * Checks Whether if Pro version is incompatible.
  *
  * @since    1.0.0
@@ -702,6 +716,9 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 		// Pro is not activated.
 		$bumphtml .= '<input type="text" id="bump_hidden_check_pro" class="check_if_pro_exists" value="inactive">';
 	}
+	// Display Unique ID.
+	$bumphtml .= '<input type="text" id="unique_id_for_encountered_bump" class="unique_id_for_this_bump" value="' . mwb_ubo_lite_fetch_unique_id( $encountered_order_bump_id ) . '" >';
+
 	$offer_product = wc_get_product( $bump['id'] );
 
 	if ( ! empty( $offer_product ) && is_object( $offer_product ) && $offer_product->has_child() ) {
@@ -713,12 +730,11 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 
 		$bumphtml .= '<input type="text" class="order_bump_smo" value=' . $bump['smart_offer_upgrade'] . '>';
 	}
-	// XXXX
+
 	if ( ! empty( $bump['custom_fields_add'] ) && 'yes' == $bump['custom_fields_add'] ) {
 
 		$bumphtml .= '<input type="text" class="order_bump_smo" value=' . $bump['custom_fields_add'] . '>';
 	}
-	// XXXX
 
 	if ( is_admin() && ! empty( $bump['bump_price_at_zero'] ) ) :
 		$bumphtml .= '<input type="text" class="bump_price_at_zero" value=' . $bump['bump_price_at_zero'] . '>';
@@ -842,7 +858,7 @@ function mwb_ubo_lite_fetch_bump_offer_details( $encountered_bump_array_index, $
 	}
 
 	// Discount % is given with null value or zero.
-	if ( '%' == $price_type && empty( $discount_price ) ) {
+	if ( ( '%' == $price_type && empty( $discount_price ) ) || ( 'none' == $price_type ) ) {
 
 		// Discount % is given( null or zero ).
 		$bump['discount_price'] = $price;
@@ -1155,7 +1171,7 @@ function mwb_ubo_lite_show_custom_fields_popup( $product = '', $order_bump_index
 			<div class="mwb_bump_popup_custom_input_inner_content">
 
 				<!-- Close button starts. -->
-				<span class="mwb_bump_popup_close_simple" offer_bump_index = '<?php echo esc_html( $order_bump_index ); ?>'" class="variation_id_selected" >
+				<span class="mwb_bump_popup_close_simple" offer_bump_index = '<?php echo esc_html( $order_bump_index ); ?>' class="variation_id_selected" >
 					<img src= <?php echo esc_url( UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_URL . 'public/resources/icons/close.png' ); ?>>
 				</span>
 			<?php
@@ -1231,6 +1247,9 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 					<span><?php echo esc_html( $product->get_short_description() ); ?></span><br>
 					<?php
 						$attributes = $product->get_variation_attributes();
+						// To get the default attributes of this variation product.
+						$attributes_default = $product->get_default_attributes();
+
 						// Return if no attributes are present.
 					if ( empty( $attributes ) ) {
 						return;
@@ -1261,7 +1280,7 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 										'options'          => $options,
 										'attribute'        => $attribute_name,
 										'product'          => $product,
-										'selected'         => '',
+										'selected'         => $attributes_default[ $attribute_name ],
 										'id'               => 'attribute_' . strtolower( $attribute_name ),
 										'class'            => 'mwb_upsell_offer_variation_select',
 										'order_bump_index' => $order_bump_index,
@@ -1894,7 +1913,7 @@ function mwb_ubo_order_bump_session_validations( $encountered_order_bump_id = ''
  */
 function mwb_ubo_lite_reload_required_after_adding_offer( $product = '' ) {
 
-	if ( ! empty( $product ) && ! is_user_logged_in() && class_exists( 'WC_Subscriptions_Product' ) && WC_Subscriptions_Product::is_subscription( $product ) && 'yes' != get_option( 'woocommerce_enable_signup_and_login_from_checkout' ) ) {
+	if ( ! empty( $product ) && ! is_woocommerce_enable_signup_and_login_from_checkoutuser_logged_in() && class_exists( 'WC_Subscriptions_Product' ) && WC_Subscriptions_Product::is_subscription( $product ) && 'yes' != get_option( 'woocommerce_enable_signup_and_login_from_checkout' ) ) {
 
 		return true;
 	} else {

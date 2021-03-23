@@ -518,7 +518,7 @@ $mwb_upsell_bump_schedule_options = array(
 			<img src="images/spinner-2x.gif">
 		</div>
 		<!-- Loader for template generation ends. -->
-		
+
 		<!-- Bump Offers Start.-->
 		<div class="new_offers">
 
@@ -549,7 +549,7 @@ $mwb_upsell_bump_schedule_options = array(
 									$product_title = mwb_ubo_lite_get_title( $current_offer_product_id );
 
 									?>
-										
+
 									<option value="<?php echo esc_html( $current_offer_product_id ); ?>" selected="selected"><?php echo esc_html( $product_title ) . '( #' . esc_html( $current_offer_product_id ) . ' )'; ?>
 									</option>
 
@@ -645,7 +645,7 @@ $mwb_upsell_bump_schedule_options = array(
 								<img src="<?php echo esc_url( UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_URL . 'admin/resources/offer-templates/template-2.png' ); ?>">
 							</a>
 						</div>
-					
+
 
 						<!-- Template three. -->
 						<div class="mwb_upsell_template_select <?php echo esc_html( 3 == $mwb_ubo_selected_template ? 'mwb_ubo_selected_class' : '' ); ?> ">
@@ -699,7 +699,7 @@ $mwb_upsell_bump_schedule_options = array(
 										?>
 
 										<label>
-											
+
 											<!-- Select options for border. -->
 											<select name="parent_border_type" class="mwb_ubo_preview_select_border_type" >
 
@@ -908,7 +908,7 @@ $mwb_upsell_bump_schedule_options = array(
 										?>
 
 										<label>
-											
+
 											<!-- Slider for spacing. -->
 											<input type="range" min="10" value="<?php echo esc_html( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['design_css']['product_section_text_size'] ); ?>"  max="30" value="" name = 'product_section_text_size' class="mwb_ubo_text_slider mwb_ubo_product_slider" />
 
@@ -1135,8 +1135,7 @@ $mwb_upsell_bump_schedule_options = array(
 									$offer_lead_title = ! empty( $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['design_text']['mwb_upsell_offer_title'] ) ? $mwb_upsell_bumps_list[ $mwb_upsell_bump_id ]['design_text']['mwb_upsell_offer_title'] : '';
 
 								?>
-														
-									
+
 								<input type="text" class="mwb_upsell_offer_input_type" name="mwb_upsell_offer_title" text_id ="lead" value = "<?php echo esc_html( $offer_lead_title ); ?>">
 
 							</td>

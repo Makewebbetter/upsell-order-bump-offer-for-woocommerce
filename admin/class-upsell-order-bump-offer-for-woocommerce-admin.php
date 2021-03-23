@@ -699,6 +699,17 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 		endif;
 	}
 
+	/**
+	 * Function to start the session at the checkout page so that we can transfer
+	 * the count variable and the id of the bump HTML so that we can know how many times
+	 * the bump has been used.
+	 *
+	 */
+	public function start_session_at_checkout_page() {
+		if ( ! session_id() ) {
+			session_start();
+		}
+	}
 
 	/**
 	 * Function to show the form on checkout page if the option is enabled.

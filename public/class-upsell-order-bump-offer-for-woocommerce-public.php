@@ -160,6 +160,38 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	}
 
 	/**
+	 * Check if the bump can be used anymore. Based on this function the Order Bump will or
+	 * will not work after some time.
+	 */
+	public function check_if_the_bump_can_be_used_anymore() {
+		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
+		$response = '';
+		$bump_id = ! empty( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
+		if ( ! empty( get_option( 'mwb_ubo_bump_list' ) ) ) {
+			$all_bump = get_option( 'mwb_ubo_bump_list' );
+			// How many times it has been used till now.
+			$current_count = $all_bump[ $bump_id ]['mwb_upsell_bump_used_count'];
+			// What is the limit that has been set by the admin.
+			$set_limit = $all_bump[ $bump_id ]['mwb_upsell_bump_use_limit'];
+			// If the limit is not set and the bump can be used unlimited..
+			if ( $set_limit == 'unlimited' ) {
+				$response = 'positive';
+			}
+			$answer    = $set_limit - $current_count;
+			// If the set limit is more than the number of times it has been used, retun true else false.
+			if ( $answer >= 0 ) {
+				$response = 'positive';
+			} else {
+				$response = 'negative';
+			}
+		} else {
+			$response = 'negative';
+		}
+		echo $response;
+		wp_die();
+	}
+
+	/**
 	 * Add bump offer product to cart ( checkbox ).
 	 *
 	 * @since    1.0.0
@@ -192,10 +224,10 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 		$added = 'added';
 
-		if ( mwb_ubo_lite_reload_required_after_adding_offer( $_product ) ) {
+		// if ( mwb_ubo_lite_reload_required_after_adding_offer( $_product ) ) {
 
-			$added = 'subs_reload';
-		}
+		// 	$added = 'subs_reload';
+		// }
 
 		if ( ! empty( $_product ) && $_product->has_child() ) {
 			// Generate default price html.
@@ -472,7 +504,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		$bump_target_cart_key  = ! empty( $_POST['bump_target_cart_key'] ) ? sanitize_text_field( wp_unslash( $_POST['bump_target_cart_key'] ) ) : '';
 		$order_bump_id         = ! empty( $_POST['order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['order_bump_id'] ) ) : '';
 		$smart_offer_upgrade   = ! empty( $_POST['smart_offer_upgrade'] ) ? sanitize_text_field( wp_unslash( $_POST['smart_offer_upgrade'] ) ) : '';
-		// $custom_fields_add     = ! empty( $_POST['custom_fields_add'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_fields_add'] ) ) : '';
+		// $custom_fields_ad   = ! empty( $_POST['custom_fields_add'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_fields_add'] ) ) : '';
 		$cart_item_data        = array(
 			'mwb_ubo_offer_product' => true,
 			'mwb_ubo_offer_index'   => $bump_index,
@@ -527,8 +559,13 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	/**
 	 * Function to get the order id in the function so that we can update the item meta
 	 * succesfully.
+	 *
+	 * This function will serve two functionalities.
+	 * First is to update meta infomation
+	 * Second will be to count th eniumber of times the Order Bump has been used.
 	 */
 	public function temporary_function_to_get_order_id( $order_id ) {
+		// Functionality 1.
 		$order           = new WC_Order( $order_id );
 		$items           = $order->get_items();
 		// This will give us the item id(item id is id with respect to the Order) of the bump product.
@@ -548,6 +585,19 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 			// Foreach because item meta does not show full array on the thankyou page.
 			wc_update_order_item_meta( $bump_item_id, $value['n'], $value['v'] );
 		}
+
+		// // Functionality 2.
+		// // Now implement the functionality of Cookie and Count the number of times the Order Bump has been Used.
+		// print_r( json_decode( wp_unslash( $_COOKIE['CookieForOrderPage'] ), true ) );
+		// $array_with_previous_info    = json_decode( wp_unslash( $_COOKIE['CookieForOrderPage'] ), true );
+		// // The index of the bump on checkout page.
+		// $bump_id_of_previous_bump    = isset( $array_with_previous_info['id'] ) ? $array_with_previous_info['id'] : '';
+		// $bump_count_of_previous_bump = isset( $array_with_previous_info['count'] ) ? $array_with_previous_info['count'] : '';
+
+		// // Now get the information about all available bumps at this moment.
+		// $all_bumps_available = get_option( 'mwb_ubo_bump_list' );
+		// // The count variable associated with the Bump.
+		// $all_bumps_available[ $bump_id_of_previous_bump ]['mwb_upsell_bump_used_count'];
 
 	}
 	/**
@@ -1355,6 +1405,50 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * This function is used to receive the value of count and order bump id and
+	 * set them into a session variable and use them on the thankyou page.
+	 *
+	 */
+	public function send_value_of_count_and_bump_id_start_session() {
+		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
+		// Count variable of the Order Bump being encountered.
+		$count = isset( $_POST['was_order_bump_count'] ) ? sanitize_text_field( wp_unslash( $_POST['was_order_bump_count'] ) ) : '';
+		// ID of the bump being encountered, we are using this so that we can associate the count of using a bump
+		// in the database.
+		$id = isset( $_POST['was_order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['was_order_bump_id'] ) ) : '';
+		// Now store the values in session variable.
+		$session_data_count = array(
+			'count' => $count,
+			'id'    => $id,
+		);
+		if ( null == WC()->session->get( 'bump_use_count' ) ) {
+
+			WC()->session->set( 'bump_use_count', $session_data_count );
+		}
+		print_r( $_SESSION['bump_use_count'] );
+		wp_die();
+	}
+	/**
+	 * Function to upgrade the value of count in database.
+	 *
+	 * After the function send_value_of_count_and_bump_id_start_session, upgrade the value of
+	 * count in the database.
+	 */
+	public function update_the_value_count_for_bump_use() {
+		$count_of_previous_bump = WC()->session->get( 'bump_use_count' )['count'];
+		$id_of_previous_bump    = WC()->session->get( 'bump_use_count' )['id'];
+		$all_bumps_info         = ! empty( get_option( 'mwb_ubo_bump_list' ) ) ? get_option( 'mwb_ubo_bump_list' ) : '';
+		$count_in_database      = $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'];
+		// Convert the value to integer, upgrade it, change to string again and upload it.
+		$count_in_database = (int) $count_in_database;
+		++$count_in_database;
+		$count_in_database = (string) $count_in_database;
+		$all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'] = $count_in_database;
+		update_option( 'mwb_ubo_bump_list', $all_bumps_info );
+		WC()->session->__unset( 'bump_use_count' );
 	}
 	// End of class.
 }

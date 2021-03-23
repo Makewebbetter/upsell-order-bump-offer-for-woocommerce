@@ -24,18 +24,29 @@
 		$('.mwb_ubo_lite_skype_setting').on( 'click', function () {
 			$( '#mwb_ubo_lite_skype_connect_with_us' ).toggleClass('show');
 		});
-	    // Onclick outside the div close for Go Pro popup.
-	    $('body').click
+	   // Onclick outside the div close for Go Pro popup.
+	    $('.mwb_ubo_lite_go_pro_popup_wrap').click
 	    (
 	      function(e)
-	      { 
+	      {
 	        if( e.target.className == 'mwb_ubo_lite_go_pro_popup_wrap mwb_ubo_lite_go_pro_popup_show' )
-	        {   
+	        {
 	            $( '.mwb_ubo_lite_go_pro_popup_wrap' ).removeClass( 'mwb_ubo_lite_go_pro_popup_show' );
 	            $( 'body' ).removeClass( 'mwb_ubo_lite_go_pro_popup_body' );
 	        }
 	      }
 	    );
+		// Alternative to body click JS.
+		// $(document).mouseup(function(e){
+		// 	alert('working');
+		// 	var container = $('.mwb_ubo_lite_go_pro_popup');
+		// 	// If anythingoutside the container is clicked.
+		// 	if (!container.is(e.target) && container.has(e.target).length === 0) 
+		// 	{
+		// 		container.hide();
+		// 	}
+		// })
+
 		
 		// Sticky Offer Preview.
 		$(".mwb_upsell_offer_main_wrapper").stick_in_parent({offset_top: 50});
@@ -211,7 +222,7 @@
 		});
 
 		// Onclick outside the popup close the popup.
-		$('body').click
+		$('.mwb_ubo_lite_go_pro_popup_wrap').click
 		(
 		  function(e)
 		  {
@@ -678,6 +689,15 @@ jQuery(document).ready( function($) {
 		// Hide if no content is present.
 		$(".mwb_upsell_offer_secondary_section").hide();
 	}
+
+/*==================================================================================
+    Disable number field on bump creation when no discount or fixed price is chosen
+===================================================================================*/ 
+	$(document).on( 'click', '#mwb_upsell_offer_price_type_id' ,function(e){
+        if($(this).val() == 'none' ){
+			$( "input[name='mwb_upsell_bump_offer_discount_price']" ).prop('disabled', true);
+		}
+    });
 
 // End of js.
 });
