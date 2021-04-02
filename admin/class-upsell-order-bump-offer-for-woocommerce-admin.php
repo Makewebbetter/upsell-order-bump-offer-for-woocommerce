@@ -129,6 +129,8 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 
 			if ( 'toplevel_page_upsell-order-bump-offer-for-woocommerce-setting' == $pagescreen ) {
 
+				add_filter( 'doing_it_wrong_trigger_error', function () {return false;}, 10, 0 );
+
 				wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/select2.min.js', array( 'jquery' ), $this->version, false );
 
 				wp_enqueue_script( 'mwb_ubo_lite_admin_script', plugin_dir_url( __FILE__ ) . 'js/upsell-order-bump-offer-for-woocommerce-admin.js', array( 'jquery' ), $this->version, false );
