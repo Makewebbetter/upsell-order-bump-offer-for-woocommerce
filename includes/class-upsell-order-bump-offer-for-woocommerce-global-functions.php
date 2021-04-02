@@ -1269,9 +1269,12 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 						<div class="mwb_ubo_input_row">
 							<p class="mwb_ubo_bump_attributes_name">
 								<!-- In case slug is encountered. -->
-								<?php $show_title = str_replace( 'pa_', '', $attribute_name ); ?>
+								<?php
+								// $show_title = str_replace( 'pa_', '', $attribute_name );
+								$show_title = wc_attribute_label( $attribute_name );
+								?>
 								<?php $attribute_name = str_replace( ' ', '-', $attribute_name ); ?>
-								<?php echo esc_html( ucfirst( $show_title ) ); ?>
+								<?php echo esc_html( $show_title ); ?>
 							</p>
 							<?php
 								// Function to return variations select html.
@@ -1280,7 +1283,7 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 										'options'          => $options,
 										'attribute'        => $attribute_name,
 										'product'          => $product,
-										'selected'         => $attributes_default[ $attribute_name ],
+										'selected'         => isset( $attributes_default[ $attribute_name ] ) ? $attributes_default[ $attribute_name ] : '',
 										'id'               => 'attribute_' . strtolower( $attribute_name ),
 										'class'            => 'mwb_upsell_offer_variation_select',
 										'order_bump_index' => $order_bump_index,
@@ -1309,14 +1312,16 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 									// Both conditions satisfied.
 									// Match the index and show the input fields that were assigned to a particular Order Bump.
 									$all_values = get_option( 'custom_form_values_all_keys_collect', false );
-									foreach ( $all_values as $key => $value ) {
-										$arr = get_option( 'custom_form_values_' . $value );
-										if ( $order_bump_index == $arr['order_bump_id'] ) {
-											?>
-										<!-- Custom input field name. -->
-										<label class="mwb_ubo_price_html_for_variations" for=<?php echo $arr['name']; ?> ><?php echo esc_html( $arr['name'] ); ?></label>
-										<input type = <?php echo $arr['type']; ?> placeholder = <?php echo $arr['placeholder']; ?> class = "mwb_bump_popup_custom_input_common_class_variation"  id="mwb_bump_popup_custom_input_<?php echo $arr['name']; ?>" name=<?php echo $arr['name']; ?> required ><br><br>
-											<?php
+									if ( $all_values != false ) {
+										foreach ( $all_values as $key => $value ) {
+											$arr = get_option( 'custom_form_values_' . $value );
+											if ( $order_bump_index == $arr['order_bump_id'] ) {
+												?>
+											<!-- Custom input field name. -->
+											<label class="mwb_ubo_price_html_for_variations" for=<?php echo $arr['name']; ?> ><?php echo esc_html( $arr['name'] ); ?></label>
+											<input type = <?php echo $arr['type']; ?> placeholder = <?php echo $arr['placeholder']; ?> class = "mwb_bump_popup_custom_input_common_class_variation"  id="mwb_bump_popup_custom_input_<?php echo $arr['name']; ?>" name=<?php echo $arr['name']; ?> required ><br><br>
+												<?php
+											}
 										}
 									}
 								}
@@ -1905,6 +1910,24 @@ function mwb_ubo_order_bump_session_validations( $encountered_order_bump_id = ''
 	}
 }
 
+// /**
+//  * If page reload is required when subscription offer is added
+//  * and according to conditions.
+//  *
+//  * @since    1.4.0
+//  */
+// function mwb_ubo_lite_reload_required_after_adding_offer( $product = '' ) {
+
+// 	if ( ! empty( $product ) && ! is_woocommerce_enable_signup_and_login_from_checkoutuser_logged_in() && class_exists( 'WC_Subscriptions_Product' ) && WC_Subscriptions_Product::is_subscription( $product ) && 'yes' != get_option( 'woocommerce_enable_signup_and_login_from_checkout' ) ) {
+
+// 		return true;
+// 	} else {
+
+// 		return false;
+// 	}
+// }
+
+
 /**
  * If page reload is required when subscription offer is added
  * and according to conditions.
@@ -1913,7 +1936,7 @@ function mwb_ubo_order_bump_session_validations( $encountered_order_bump_id = ''
  */
 function mwb_ubo_lite_reload_required_after_adding_offer( $product = '' ) {
 
-	if ( ! empty( $product ) && ! is_woocommerce_enable_signup_and_login_from_checkoutuser_logged_in() && class_exists( 'WC_Subscriptions_Product' ) && WC_Subscriptions_Product::is_subscription( $product ) && 'yes' != get_option( 'woocommerce_enable_signup_and_login_from_checkout' ) ) {
+	if ( ! empty( $product ) && ! is_user_logged_in() && class_exists( 'WC_Subscriptions_Product' ) && WC_Subscriptions_Product::is_subscription( $product ) && 'yes' != get_option( 'woocommerce_enable_signup_and_login_from_checkout' ) ) {
 
 		return true;
 	} else {

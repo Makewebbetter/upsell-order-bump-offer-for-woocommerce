@@ -224,10 +224,16 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 		$added = 'added';
 
-		// if ( mwb_ubo_lite_reload_required_after_adding_offer( $_product ) ) {
+		if ( mwb_ubo_lite_reload_required_after_adding_offer( $_product ) ) {
 
-		// 	$added = 'subs_reload';
-		// }
+			$added = 'subs_reload';
+		}
+
+		// Set the session for the id of bump product.
+		// This session will mainly be used in coupon_restriction_for_bump.
+		if ( null == WC()->session->get( 'restrict_coupon_on_bump_target' ) ) {
+			WC()->session->set( 'restrict_coupon_on_bump_target', $bump_product_id );
+		}
 
 		if ( ! empty( $_product ) && $_product->has_child() ) {
 			// Generate default price html.
@@ -282,6 +288,54 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	}
 
 	/**
+	 * Function to get the value of session variable and restrict the use of the coupon on the
+	 * bump offer procduct.
+	 *
+	 * @param [type] $cart_object
+	 * @return void
+	 */
+	public function coupon_restriction_for_bump( $cart_object ) {
+
+		// Now get the session that we set in the add_to_cart() method.
+		// $bump_offer_product_id = WC()->session->get( 'restrict_coupon_on_bump_target' );
+		// echo $bump_offer_product_id;
+		// echo '<demo_BR>rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr';
+		// foreach ( $cart_object->get_cart() as $hash => $value ) {
+		// 	print_r( $value['product_id'] );
+		// 	echo '<br>';
+		// }
+		// //////////////////////////////////////////////////////////////////////////////
+
+		// $total_contents = WC()->cart->cart_contents_count;
+		// $discount       = WC()->cart->discount_total;
+		// $cart = WC()->cart->get_cart();
+		// $applied_coupons = WC()->cart->get_applied_coupons();
+		// $total_of_cart = floatval( preg_replace( '#[^\d.]#', '', WC()->cart->get_cart_total() ) );
+		// foreach ( $cart as $item => $values ) {
+		// 	$products_ids_array[] = $values['product_id'];
+		// 	$price[] = get_post_meta( $values['product_id'], '_price', true );
+		// }
+		// // Now we have two arrays one with product id and one with all prices.
+		// // Bump id and its price will be at same index but in different arrays.
+		// // Also the price showing for the bump is not the discounted one, but the original.
+		// if ( ! empty( $products_ids_array ) ) {
+		// 	$price_of_bump_offer = $total_of_cart;
+		// 	foreach ( $products_ids_array as $k => $v ) {
+		// 		// If any id in this array = id of bump offer that means we have offer product in cart.
+		// 		if ( $v != $bump_offer_product_id ) {
+		// 			$temp                = $price_of_bump_offer - floatval( $price[ $k ] );
+		// 			$price_of_bump_offer = $temp;
+		// 		}
+		// 	}
+		// 	// $price_of_bump_offer will now have the price of bump offer product.
+		// 	// $price_of_other_items will have the price of all the other items.
+		// 	$price_of_other_items = $total_of_cart - $price_of_bump_offer;
+
+		// ///////////////////////////////////////////////////////////////////////////////////
+	}
+	// }
+
+	/**
 	 * Remove bump offer product to cart.
 	 *
 	 * @since    1.0.0
@@ -299,6 +353,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		}
 
 		WC()->session->__unset( "bump_offer_status_$bump_index" );
+
+		// Unset the session, when the checkbox is unchecked.
+		WC()->session->__unset( 'restrict_coupon_on_bump_target' );
 
 		echo json_encode( 'removed' );
 
@@ -548,9 +605,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 				Upsell_Order_Bump_Offer_For_Woocommerce_Pro::mwb_ubo_upgrade_offer( $bump_offer_cart_item_key, $bump_target_cart_key );
 			}
 		}
-		$all_values = $_POST['all_values'];
-		// Deocode the JSON string into an associative array.
-		// $bump_product_id = $_POST['bump_product_id'];
+		$all_values = ! ( empty( $_POST['all_values'] ) ) ? $_POST['all_values'] : '';
 		update_option( 'order_complete_show_custom_values', $all_values );
 		echo json_encode( $added );
 		wp_die();
@@ -796,6 +851,161 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 					$value['data']->set_price( $price_discount );
 				}
 			}
+		}
+	}
+
+	/**
+	 * Function to restrict the use of coupons on the bump offer product.
+	 * COUPON RESTRICTION.
+	 */
+	public function woocommerce_custom_price_to_cart_item_remove_coupons( $cart_object ) {
+		if ( ( WC()->session->__isset( 'restrict_coupon_on_bump_target' ) ) && ( ! empty( WC()->cart->get_applied_coupons() )) ) {
+			$bump_offer_product_id = WC()->session->get( 'restrict_coupon_on_bump_target' );
+			$applied_coupons       = WC()->cart->get_applied_coupons();
+			$subtotal_without_bump = 0;
+			$price_of_bump_offer   = 0;
+
+			foreach ( $cart_object->cart_contents as $key => $value ) {
+				if ( $value['product_id'] == $bump_offer_product_id ) {
+					$price_of_bump_offer = $value['data']->get_price();
+					continue;
+				} else {
+					$subtotal_without_bump += floatval( $value['data']->get_price() ) * floatval( $value['quantity'] );
+				}
+			}
+			// $subtotal_without_bump will have subtotal without bump offer.
+			// echo $subtotal_without_bump;
+			if ( empty( $applied_coupons ) ) {
+				return;
+			} else {
+				foreach ( $applied_coupons as $k => $v ) {
+					$c = new WC_Coupon( $v );
+					// In case coupon is percentage coupon.
+					if ( $c->get_discount_type() == 'percent' ) {
+						$amount                = $c->get_amount();
+						$subtotal_without_bump = $subtotal_without_bump - ( ( $amount / 100 ) * $subtotal_without_bump );
+					}
+					// In case coupon is fixed price on the cart.
+					if ( $c->get_discount_type() == 'fixed_cart' ) {
+						$amount                = $c->get_amount();
+						$subtotal_without_bump = $subtotal_without_bump - $amount;
+					}
+					// In case coupon is fixed price on particular products on.
+					if ( $c->get_discount_type() == 'fixed_product' ) {
+						$amount                = $c->get_amount();
+						$subtotal_without_bump = 0;
+						foreach ( $cart_object->cart_contents as $key => $value ) {
+							if ( $value['product_id'] == $bump_offer_product_id ) {
+								continue;
+							} else {
+								$individual = $value['quantity'] * ( $value['data']->get_price() - $amount );
+							}
+							$subtotal_without_bump += $individual;
+						}
+					}
+				}
+			}
+			$subtotal              = $subtotal_without_bump + $price_of_bump_offer;
+			$cart_object->subtotal = $subtotal;
+		}
+	}
+
+	public function custom_cart_totals_coupon_html( $coupon_html, $coupon, $discount_amount_html ) {
+		// For percent coupon types only.
+		if ( ( WC()->session->__isset( 'restrict_coupon_on_bump_target' ) ) && ( ! empty( WC()->cart->get_applied_coupons() )) ) {
+			$bump_offer_product_id = WC()->session->get( 'restrict_coupon_on_bump_target' );
+			$applied_coupons       = WC()->cart->get_applied_coupons();
+			$subtotal_without_bump = 0;
+			$price_of_bump_offer   = 0;
+
+			foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+				$product    = $cart_item['data'];
+				$product_id = $cart_item['product_id'];
+				if ( $cart_item['product_id'] == $bump_offer_product_id ) {
+					$price_of_bump_offer = $cart_item['data']->get_price();
+					continue;
+				} else {
+					$subtotal_without_bump += floatval( $cart_item['data']->get_price() ) * floatval( $cart_item['quantity'] );
+				}
+			}
+			if ( 'percent' == $coupon->get_discount_type() ) {
+				$percent               = $coupon->get_amount();
+				$res                   = ( $percent / 100 ) * $subtotal_without_bump;
+				$subtotal_without_bump = $subtotal_without_bump - $res;
+				$discount_amount_html  = '<span>-' . wc_price( $res ) . '</span>';
+				$coupon_html           = $discount_amount_html . ' <a href="' . esc_url( add_query_arg( 'remove_coupon', urlencode( $coupon->get_code() ), defined( 'WOOCOMMERCE_CHECKOUT' ) ? wc_get_checkout_url() : wc_get_cart_url() ) ) . '" class="woocommerce-remove-coupon" data-coupon="' . esc_attr( $coupon->get_code() ) . '">' . __( '[Remove]', 'woocommerce' ) . '</a>';
+			}
+			// if ( 'fixed_cart' == $coupon->get_discount_type() ) {
+			// 	$fixed_cart            = $coupon->get_amount();
+			// 	$subtotal_without_bump = $subtotal_without_bump - $fixed_cart;
+			// 	// $fixed_cart           = $coupon->get_amount();
+			// 	$discount_amount_html = '<span>' . $fixed_cart . ' /- </span>';
+			// 	$coupon_html          = $discount_amount_html . ' <a href="' . esc_url( add_query_arg( 'remove_coupon', urlencode( $coupon->get_code() ), defined( 'WOOCOMMERCE_CHECKOUT' ) ? wc_get_checkout_url() : wc_get_cart_url() ) ) . '" class="woocommerce-remove-coupon" data-coupon="' . esc_attr( $coupon->get_code() ) . '">' . __( '[Remove]', 'woocommerce' ) . '</a>';
+			// }
+			if ( 'fixed_product' == $coupon->get_discount_type() ) {
+				$fixed_product         = $coupon->get_amount();
+				$subtotal_without_bump = 0;
+				$total_discount = 0;
+
+				foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+					$product    = $cart_item['data'];
+					if ( $cart_item['product_id'] == $bump_offer_product_id ) {
+						continue;
+					} else {
+						$individual      = $cart_item['quantity'] * ( $cart_item['data']->get_price() - $fixed_product );
+						$total_discount += $fixed_product * $cart_item['quantity'];
+					}
+					$subtotal_without_bump += $individual;
+				}
+				$discount_amount_html = '<span>-' . wc_price( $total_discount ) . '</span>';
+				$coupon_html          = $discount_amount_html . ' <a href="' . esc_url( add_query_arg( 'remove_coupon', urlencode( $coupon->get_code() ), defined( 'WOOCOMMERCE_CHECKOUT' ) ? wc_get_checkout_url() : wc_get_cart_url() ) ) . '" class="woocommerce-remove-coupon" data-coupon="' . esc_attr( $coupon->get_code() ) . '">' . __( '[Remove]', 'woocommerce' ) . '</a>';
+			}
+			return $coupon_html;
+			// }
+		} else {
+			return $coupon_html;
+		}
+	}
+	/**
+	 * Function to unset the session if on checkout page the bump was unchecked.
+	 *
+	 * @return void
+	 */
+	public function unset_session_if_bump_unchecked() {
+		// If the session was not set , return.
+		if ( null == WC()->session->get( 'restrict_coupon_on_bump_target' ) ) {
+			return;
+		}
+		// If the session is set , unset it.
+		WC()->session->__unset( 'restrict_coupon_on_bump_target' );
+	}
+
+	public function lets_see() {
+		$total_contents = WC()->cart->cart_contents_count;
+		$discount       = WC()->cart->discount_total;
+		$bump_offer_product_id = 20;
+		$cart = WC()->cart->get_cart();
+		$applied_coupons = WC()->cart->get_applied_coupons();
+		$total_of_cart = floatval( preg_replace( '#[^\d.]#', '', WC()->cart->get_cart_total() ) );
+		foreach ( $cart as $item => $values ) {
+			$products_ids_array[] = $values['product_id'];
+			$price[] = get_post_meta( $values['product_id'], '_price', true );
+		}
+		// Now we have two arrays one with product id and one with all prices.
+		// Bump id and its price will be at same index but in different arrays.
+		// Also the price showing for the bump is not the discounted one, but the original.
+		if ( ! empty( $products_ids_array ) ) {
+			$price_of_bump_offer = $total_of_cart;
+			foreach ( $products_ids_array as $k => $v ) {
+				// If any id in this array = id of bump offer that means we have offer product in cart.
+				if ( $v != $bump_offer_product_id ) {
+					$temp                = $price_of_bump_offer - floatval( $price[ $k ] );
+					$price_of_bump_offer = $temp;
+				}
+			}
+			// $price_of_bump_offer will now have the price of bump offer product.
+			// $price_of_other_items will have the price of all the other items.
+			$price_of_other_items = $total_of_cart - $price_of_bump_offer;
 		}
 	}
 
@@ -1171,6 +1381,12 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 			// Cost calculations only when the offer is added.
 			add_action( 'woocommerce_before_calculate_totals', array( $this, 'woocommerce_custom_price_to_cart_item' ) );
 
+			// Cost calculations only when the offer is added.
+			add_action( 'woocommerce_calculate_totals', array( $this, 'woocommerce_custom_price_to_cart_item_remove_coupons' ) );
+
+			// xx.
+			add_filter( 'woocommerce_cart_totals_coupon_html', array( $this, 'custom_cart_totals_coupon_html' ), 30, 3 );
+
 			// Disable quantity field at cart page.
 			add_filter( 'woocommerce_cart_item_quantity', array( $this, 'disable_quantity_bump_product_in_cart' ), 10, 2 );
 
@@ -1193,6 +1409,8 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 			// Reset Order Bump session data.
 			add_action( 'woocommerce_thankyou', array( $this, 'reset_session_variable' ), 11 );
+
+			// add_action( 'woocommerce_applied_coupon', array( $this, 'lets_see' ) );
 		}
 	}
 
@@ -1428,6 +1646,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 			WC()->session->set( 'bump_use_count', $session_data_count );
 		}
+
 		print_r( $_SESSION['bump_use_count'] );
 		wp_die();
 	}
@@ -1449,6 +1668,31 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		$all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'] = $count_in_database;
 		update_option( 'mwb_ubo_bump_list', $all_bumps_info );
 		WC()->session->__unset( 'bump_use_count' );
+	}
+
+	public function demo_details_for_the_cart_1() {
+		// This will get all the coupons.
+		// $cart = WC()->cart->get_coupons();
+		$cart = WC()->cart->get_cart();
+		$applied_coupons = WC()->cart->get_applied_coupons();
+		$total_of_cart = WC()->cart->get_total();
+		// echo '<pre>';
+		foreach ( $cart as $item => $values ) {
+			$products_ids_array[] = $values['product_id'];
+			// $_product =  wc_get_product( $values['data']->get_id()); 
+			// echo "<b>" . $_product->get_title().'</b>  <br> Quantity: '.$values['quantity'].'<br>'; 
+			// $price = get_post_meta($values['product_id'] , '_price', true);
+			// echo "  Price: " . $price . "<br>";
+		}
+		// print_r( WC()->cart->get_total() );
+		foreach ( $products_ids_array as $k=>$v ) {
+
+			if( $v == '185') {
+				// WC()->cart->remove_coupons();
+				print_r( WC()->cart->get_discount_total() );
+			}
+		}
+
 	}
 	// End of class.
 }

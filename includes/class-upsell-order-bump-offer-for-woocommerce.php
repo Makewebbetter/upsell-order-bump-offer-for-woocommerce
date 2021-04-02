@@ -296,6 +296,12 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 
 			// Hook to retrieve the value from the session and increase the count of the order bump being used.
 			$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'update_the_value_count_for_bump_use' );
+
+			$this->loader->add_action( 'wp_ajax_unset_session_if_bump_unchecked', $plugin_public, 'unset_session_if_bump_unchecked' );
+			$this->loader->add_action( 'wp_ajax_nopriv_unset_session_if_bump_unchecked', $plugin_public, 'unset_session_if_bump_unchecked' );
+
+			// $this->loader->add_action( 'woocommerce_checkout_after_order_review', $plugin_public, 'demo_details_for_the_cart_1' );
+			// $this->loader->add_action( 'woocommerce_before_calculate_totals', $plugin_public, 'coupon_restriction_for_bump', 10, 1 );
 		}
 	}
 

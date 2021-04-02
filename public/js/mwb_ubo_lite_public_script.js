@@ -1,5 +1,4 @@
 jQuery(document).ready( function($) {
-
     // Function to fetch the vales of options table to check if the popup should be enabled or not.
     // function show_correct_popup_on_bump_offer(){
         var result_same_id_popup = '';
@@ -21,11 +20,38 @@ jQuery(document).ready( function($) {
         });
     // }
 
+
+/*==================================================================================================================================
+        Check if bump is not checked by deafault, unset the session which was made to get the Order id so that coupon restriction
+        can be applied.
+====================================================================================================================================*/
+    // order_bump_index         = $('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
+    // parent_wrapper_class     = '.mwb_ubo_wrapper_' + order_bump_index;
+    // if (!( $( parent_wrapper_class + ' .add_offer_in_cart' ).is( ':checked' ) ) ) {
+    //     jQuery.ajax({
+    //         type    : 'post',
+    //         dataType: 'json',
+    //         url     : mwb_ubo_lite_public.ajaxurl,
+    //         data: { 
+    //             nonce                : mwb_ubo_lite_public.auth_nonce,
+    //             was_order_bump_id    : was_order_bump_id,
+    //             was_order_bump_count : was_order_bump_count,
+    //             action               : 'unset_session_if_bump_unchecked',
+    //         },  
+    //         success: function( msg ) {
+
+    //         }
+    //     });
+    // }
+
+/*==================================================================================================================================
+        END
+====================================================================================================================================*/
+
     $(document).on('click','#place_order',function(){
         order_bump_index         = $('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
         parent_wrapper_class     = '.mwb_ubo_wrapper_' + order_bump_index;
         var was_order_bump_id    = $('.order_bump_id').val();
-        alert(was_order_bump_id);
         var was_order_bump_count = $('#unique_id_for_encountered_bump').val();
         if ( $( parent_wrapper_class + ' .add_offer_in_cart' ).is( ':checked' ) ) {
             // Run an ajax here.
@@ -645,7 +671,6 @@ jQuery(document).ready( function($) {
         $( '.mwb_bump_popup_' + order_bump_index ).css('display','none');
         $( '.mwb_ubo_wrapper_index_' + order_bump_index ).find( '.add_offer_in_cart' ).prop( 'checked', false );
     });
-
 
     // Onclick outside the div close the popup.
     $('mwb_bump_popup_wrapper').click
