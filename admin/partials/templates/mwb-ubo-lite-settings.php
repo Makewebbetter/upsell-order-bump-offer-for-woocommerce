@@ -29,6 +29,8 @@ if ( isset( $_POST['mwb_upsell_bump_common_settings_save'] ) ) {
 	// Enable Plugin.
 	$mwb_bump_upsell_global_options['mwb_bump_enable_plugin'] = ! empty( $_POST['mwb_bump_enable_plugin'] ) ? 'on' : 'off';
 
+	$mwb_bump_upsell_global_options['mwb_bump_enable_plugin_form'] = ! empty( $_POST['mwb_bump_enable_plugin_form'] ) ? sanitize_text_field( wp_unslash( $_POST['mwb_bump_enable_plugin_form'] ) ) : 'no';
+
 	$mwb_bump_upsell_global_options['mwb_bump_skip_offer'] = ! empty( $_POST['mwb_bump_skip_offer'] ) ? sanitize_text_field( wp_unslash( $_POST['mwb_bump_skip_offer'] ) ) : 'yes';
 
 	$mwb_bump_upsell_global_options['mwb_bump_order_bump_limit'] = ! empty( $_POST['mwb_bump_order_bump_limit'] ) ? sanitize_text_field( wp_unslash( $_POST['mwb_bump_order_bump_limit'] ) ) : '1';
@@ -65,6 +67,8 @@ if ( isset( $_POST['mwb_upsell_bump_common_settings_save'] ) ) {
 
 	// By default plugin will be enabled.
 	$mwb_bump_enable_plugin = ! empty( $mwb_ubo_global_options['mwb_bump_enable_plugin'] ) ? $mwb_ubo_global_options['mwb_bump_enable_plugin'] : '';
+
+	$mwb_bump_upsell_global_options['mwb_bump_enable_plugin_form'] = ! empty( $_POST['mwb_bump_enable_plugin_form'] ) ? sanitize_text_field( wp_unslash( $_POST['mwb_bump_enable_plugin_form'] ) ) : 'no';
 
 	// Bump Offer skip.
 	$mwb_bump_enable_skip = ! empty( $mwb_ubo_global_options['mwb_bump_skip_offer'] ) ? $mwb_ubo_global_options['mwb_bump_skip_offer'] : '';
@@ -270,6 +274,12 @@ if ( isset( $_POST['mwb_upsell_bump_common_settings_save'] ) ) {
 				</tr>
 				<!-- Offer location end. -->
 
+				
+
+
+
+				
+
 				<!-- Features after v1.0.2 -->
 
 				<!-- Add version compare to dependent plugin -->
@@ -339,6 +349,29 @@ if ( isset( $_POST['mwb_upsell_bump_common_settings_save'] ) ) {
 					</td>
 				</tr>
 				<!-- Pre-order feature skip end. -->
+
+				<!-- Enable Form Start. -->
+				<tr valign="top">
+
+					<th scope="row" class="titledesc">
+						<span class="mwb_ubo_premium_strip"><?php esc_html_e( 'Pro', 'upsell-order-bump-offer-for-woocommerce' ); ?></span>
+						<label for="mwb_bump_enable_plugin_form  "><?php esc_html_e( 'Enable Form on checkout page', 'upsell-order-bump-offer-for-woocommerce' ); ?></label>
+					</th>
+
+					<td class="forminp forminp-text">
+						<?php
+							$attribute_description_form = esc_html__( 'Enable Form on checkout page.', 'upsell-order-bump-offer-for-woocommerce' );
+							mwb_ubo_lite_help_tip( $attribute_description_form );
+						?>
+
+						<label class="mwb_upsell_bump_enable_plugin_label " for="mwb_bump_enable_plugin_form" >
+						<input id="mwb_bump_enable_plugin_form" class="mwb_upsell_bump_enable_plugin_input" type="checkbox" <?php echo mwb_ubo_lite_if_pro_exists() && ! empty( $mwb_bump_enable_plugin_form ) && 'yes' === $mwb_bump_enable_plugin_form ? 'checked' : ''; ?> value='yes' name="mwb_bump_enable_plugin_form" >	
+						<span class="mwb_upsell_bump_enable_plugin_span"></span>
+
+						</label>
+					</td>
+				</tr>
+				<!-- Enable Form end. -->
 
 				<!-- Order Bump Limit start. -->
 				<tr valign="top">

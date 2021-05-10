@@ -197,6 +197,26 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 		// Validate Pro version compatibility.
 		$this->loader->add_action( 'plugins_loaded', $plugin_admin, 'validate_version_compatibility' );
 
+		// // Hook to ajax when submit button is clicked on popup for custom fields.
+		// $this->loader->add_action( 'wp_ajax_make_custom_fields_with_user_input', $plugin_admin, 'make_custom_fields_with_user_input' );
+		// $this->loader->add_action( 'wp_ajax_nopriv_make_custom_fields_with_user_input', $plugin_admin, 'make_custom_fields_with_user_input' );
+		// // Hook to ajax when toggle is clicked, the rows will be appended to existing table.
+		// $this->loader->add_action( 'wp_ajax_fetch_values_show_keys_in_table', $plugin_admin, 'fetch_values_show_keys_in_table' );
+		// $this->loader->add_action( 'wp_ajax_nopriv_fetch_values_show_keys_in_table', $plugin_admin, 'fetch_values_show_keys_in_table' );
+		// // Hook to delete a row from table
+		// $this->loader->add_action( 'wp_ajax_delete_a_row_from_creation_page_table', $plugin_admin, 'delete_a_row_from_creation_page_table' );
+		// $this->loader->add_action( 'wp_ajax_nopriv_delete_a_row_from_creation_page_table', $plugin_admin, 'delete_a_row_from_creation_page_table' );
+		// Hook to show form on the order page.
+		// $this->loader->add_filter( 'custom_form_inside_bump_hook', $plugin_admin, 'show_custom_form_on_checkout_page' );
+
+		// Hook to Insert value of custom field on checkout page into wp_woocommerce_order_itemmeta table.
+		// $this->loader->add_action( 'woocommerce_order_status_changed', $plugin_admin, 'is_express_delivery', 1, 1 );
+
+		// Hook to Show the value of custom field on the thankyou page.
+		// $this->loader->add_action( 'woocommerce_before_thankyou', $plugin_admin, 'show_value_demo' );
+		// Hook to start a session at the checkout page.
+		$this->loader->add_action( 'woocommerce_after_checkout_form', $plugin_admin, 'start_session_at_checkout_page' );
+
 	}
 
 	/**
@@ -235,6 +255,10 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 			$this->loader->add_action( 'wp_ajax_add_offer_in_cart', $plugin_public, 'add_offer_in_cart' );
 			$this->loader->add_action( 'wp_ajax_nopriv_add_offer_in_cart', $plugin_public, 'add_offer_in_cart' );
 
+			// Ajax function to specify whether the Order Bump can be used anymore or not depending on the limit.
+			$this->loader->add_action( 'wp_ajax_check_if_the_bump_can_be_used_anymore', $plugin_public, 'check_if_the_bump_can_be_used_anymore' );
+			$this->loader->add_action( 'wp_ajax_nopriv_check_if_the_bump_can_be_used_anymore', $plugin_public, 'check_if_the_bump_can_be_used_anymore' );
+
 			// Ajax to add bump offer.
 			$this->loader->add_action( 'wp_ajax_add_variation_offer_in_cart', $plugin_public, 'add_variation_offer_in_cart' );
 			$this->loader->add_action( 'wp_ajax_nopriv_add_variation_offer_in_cart', $plugin_public, 'add_variation_offer_in_cart' );
@@ -258,6 +282,36 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 
 			// Hide Order Bump meta from order items.
 			$this->loader->add_filter( 'woocommerce_order_item_get_formatted_meta_data', $plugin_public, 'hide_order_bump_meta' );
+
+			// Update the values as item meta.
+			$this->loader->add_filter( 'wp_ajax_add_simple_offer_in_cart', $plugin_public, 'add_simple_offer_in_cart' );
+			$this->loader->add_filter( 'wp_ajax_nopriv_add_simple_offer_in_cart', $plugin_public, 'add_simple_offer_in_cart' );
+
+			// Hook to get the Order details when the place order button is clicked.
+			if ( mwb_ubo_lite_if_pro_exists() ) {
+				$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'temporary_function_to_get_order_id', 10, 1 );
+			}
+
+			// Hook to append the url the parameter count to the URL.Mainly when Order will be placed the function will let us know that
+			// if the Order bump was used or not if used the count of the Variable will be updated else will not be updated.
+			// $this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'function_to_append_bump_usage_to_url' );
+
+			// Ajax to remove bump offer.
+			$this->loader->add_action( 'wp_ajax_fetch_options_for_demo_purpose', $plugin_public, 'fetch_options_for_demo_purpose' );
+			$this->loader->add_action( 'wp_ajax_nopriv_fetch_options_for_demo_purpose', $plugin_public, 'fetch_options_for_demo_purpose' );
+
+			// Ajax to store the value of count of bump usage into the session.
+			$this->loader->add_action( 'wp_ajax_send_value_of_count_and_bump_id_start_session', $plugin_public, 'send_value_of_count_and_bump_id_start_session' );
+			$this->loader->add_action( 'wp_ajax_nopriv_send_value_of_count_and_bump_id_start_session', $plugin_public, 'send_value_of_count_and_bump_id_start_session' );
+
+			// Hook to retrieve the value from the session and increase the count of the order bump being used.
+			$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'update_the_value_count_for_bump_use' );
+
+			$this->loader->add_action( 'wp_ajax_unset_session_if_bump_unchecked', $plugin_public, 'unset_session_if_bump_unchecked' );
+			$this->loader->add_action( 'wp_ajax_nopriv_unset_session_if_bump_unchecked', $plugin_public, 'unset_session_if_bump_unchecked' );
+
+			// $this->loader->add_action( 'woocommerce_checkout_after_order_review', $plugin_public, 'demo_details_for_the_cart_1' );
+			// $this->loader->add_action( 'woocommerce_before_calculate_totals', $plugin_public, 'coupon_restriction_for_bump', 10, 1 );
 		}
 	}
 

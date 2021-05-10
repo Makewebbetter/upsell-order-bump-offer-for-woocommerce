@@ -211,7 +211,7 @@
 		});
 
 		// Onclick outside the popup close the popup.
-		$('body').click
+		$('.mwb_ubo_lite_go_pro_popup_wrap').click
 		(
 		  function(e)
 		  {
@@ -560,6 +560,13 @@ jQuery(document).ready( function($) {
 	    $("#mwb_upsell_bump_creation_setting_save").click();
 	});
 
+	$("input[name='mwb_upsell_bump_offer_discount_price']").on('blur',function(){
+		if($(this).val() < 0){
+			$(this).val('');
+			alert('Negative values will not be submitted');
+		}
+	})
+
 	// Reflect bump name input value.
 	$(".mwb_upsell_offer_input_type").on("change paste keyup", function() {
 
@@ -670,6 +677,14 @@ jQuery(document).ready( function($) {
 		// Hide if no content is present.
 		$(".mwb_upsell_offer_secondary_section").hide();
 	}
+/*==================================================================================
+    Disable number field on bump creation when no discount or fixed price is chosen
+===================================================================================*/ 
+$(document).on( 'click', '#mwb_upsell_offer_price_type_id' ,function(e){
+	if($(this).val() == 'none' ){
+		$( "input[name='mwb_upsell_bump_offer_discount_price']" ).prop('disabled', true);
+	}
+});
 
 // End of js.
 });
