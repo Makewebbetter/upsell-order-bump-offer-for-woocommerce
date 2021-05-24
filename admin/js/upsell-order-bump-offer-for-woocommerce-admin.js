@@ -25,7 +25,7 @@
 			$( '#mwb_ubo_lite_skype_connect_with_us' ).toggleClass('show');
 		});
 	    // Onclick outside the div close for Go Pro popup.
-	    $('body').click
+		$('.mwb_ubo_lite_go_pro_popup_wrap').click
 	    (
 	      function(e)
 	      { 
@@ -36,6 +36,16 @@
 	        }
 	      }
 	    );
+		// Alternative to body click JS.
+		// $(document).mouseup(function(e){
+		// 	alert('working');
+		// 	var container = $('.mwb_ubo_lite_go_pro_popup');
+		// 	// If anythingoutside the container is clicked.
+		// 	if (!container.is(e.target) && container.has(e.target).length === 0) 
+		// 	{
+		// 		container.hide();
+		// 	}
+		// })
 		
 		// Sticky Offer Preview.
 		$(".mwb_upsell_offer_main_wrapper").stick_in_parent({offset_top: 50});
@@ -581,8 +591,9 @@ jQuery(document).ready( function($) {
 
 	/**
 	 * Scripts after v1.0.2
+	 * #mwb_ubo_offer_replace_target, #mwb_ubo_enable_switch_form are added newly to show form only on pro activation.
 	 */
-	$('#mwb_ubo_offer_purchased_earlier, #mwb_ubo_offer_replace_target').on( 'click', function (e) {
+	$('#mwb_ubo_offer_purchased_earlier, #mwb_ubo_offer_replace_target, #mwb_ubo_offer_add_custom_fields, #mwb_ubo_enable_switch_form, #mwb_bump_enable_plugin_form').on( 'click', function (e) {
 
 		// Add popup to unlock pro features.
 		var pro_status = document.getElementById( 'mwb_ubo_pro_status' );
@@ -680,11 +691,11 @@ jQuery(document).ready( function($) {
 /*==================================================================================
     Disable number field on bump creation when no discount or fixed price is chosen
 ===================================================================================*/ 
-$(document).on( 'click', '#mwb_upsell_offer_price_type_id' ,function(e){
-	if($(this).val() == 'none' ){
-		$( "input[name='mwb_upsell_bump_offer_discount_price']" ).prop('disabled', true);
-	}
-});
+	$(document).on( 'click', '#mwb_upsell_offer_price_type_id' ,function(e){
+		if($(this).val() == 'none' ){
+			$( "input[name='mwb_upsell_bump_offer_discount_price']" ).prop('disabled', true);
+		}
+	});
 
 // End of js.
 });

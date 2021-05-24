@@ -24,7 +24,6 @@ function mwb_ubo_lite_if_pro_exists() {
 
 	return false;
 }
-
 /**
  *  Function to fetch the Unique ID from mwb_ubo_bump_list associated with this bump.
  */
@@ -696,27 +695,6 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 	$bumphtml .= '<input type="hidden" class ="target_id_cart_key" value="' . $bump['target_key'] . '">';
 	$bumphtml .= '<input type="hidden" class ="order_bump_index" value="index_' . $order_bump_key . '">';
 	$bumphtml .= '<input type="hidden" class ="order_bump_id" value="' . $encountered_order_bump_id . '">';
-	
-	// // Hidden field to specify whether to show custom fields or not for a bump.
-	// // Check if custom form is enabled for this particular Order bump.
-	// $option_bump_list = get_option( 'mwb_ubo_bump_list' );
-	// foreach ( $option_bump_list as $key => $value ) {
-	// 	if ( $key == $encountered_order_bump_id ) {
-	// 		if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
-	// 			$bumphtml .= '<input type="text" class ="custom_fields_for_orderbump_toggle" value="show">';
-	// 		} else {
-	// 			$bumphtml .= '<input type="text" class ="custom_fields_for_orderbump_toggle" value="hide">';
-	// 		}
-	// 	}
-	// }
-
-	// if ( mwb_ubo_lite_if_pro_exists() ) {
-	// 	// That means the pro version is activated.
-	// 	$bumphtml .= '<input type="text" id="bump_hidden_check_pro" class="check_if_pro_exists" value="active">';
-	// } else {
-	// 	// Pro is not activated.
-	// 	$bumphtml .= '<input type="text" id="bump_hidden_check_pro" class="check_if_pro_exists" value="inactive">';
-	// }
 
 	// Hidden field to specify whether to show custom fields or not for a bump.
 	// Check if custom form is enabled for this particular Order bump.
@@ -724,23 +702,22 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 	foreach ( $option_bump_list as $key => $value ) {
 		if ( $key == $encountered_order_bump_id ) {
 			if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
-				$bumphtml .= '<input type="text" class ="custom_fields_for_orderbump_toggle" value="show">';
+				$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="show">';
 			} else {
-				$bumphtml .= '<input type="text" class ="custom_fields_for_orderbump_toggle" value="hide">';
+				$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="hide">';
 			}
 		}
 	}
 
 	if ( mwb_ubo_lite_if_pro_exists() ) {
 		// That means the pro version is activated.
-		$bumphtml .= '<input type="text" id="bump_hidden_check_pro" class="check_if_pro_exists" value="active">';
+		$bumphtml .= '<input type="hidden" id="bump_hidden_check_pro" class="check_if_pro_exists" value="active">';
 	} else {
 		// Pro is not activated.
-		$bumphtml .= '<input type="text" id="bump_hidden_check_pro" class="check_if_pro_exists" value="inactive">';
+		$bumphtml .= '<input type="hidden" id="bump_hidden_check_pro" class="check_if_pro_exists" value="inactive">';
 	}
-
 	// Display Unique ID.
-	$bumphtml .= '<input type="text" id="unique_id_for_encountered_bump" class="unique_id_for_this_bump" value="' . mwb_ubo_lite_fetch_unique_id( $encountered_order_bump_id ) . '" >';
+	$bumphtml .= '<input type="hidden" id="unique_id_for_encountered_bump" class="unique_id_for_this_bump" value="' . mwb_ubo_lite_fetch_unique_id( $encountered_order_bump_id ) . '" >';
 
 	$offer_product = wc_get_product( $bump['id'] );
 
@@ -756,7 +733,7 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 
 	if ( ! empty( $bump['custom_fields_add'] ) && 'yes' == $bump['custom_fields_add'] ) {
 
-		$bumphtml .= '<input type="text" class="order_bump_smo" value=' . $bump['custom_fields_add'] . '>';
+		$bumphtml .= '<input type="hidden" class="order_bump_smo" value=' . $bump['custom_fields_add'] . '>';
 	}
 
 	if ( is_admin() && ! empty( $bump['bump_price_at_zero'] ) ) :
@@ -787,7 +764,7 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 	// Primary section start.
 	$bumphtml .= '<div class = "mwb_upsell_offer_primary_section" >';
 	$bumphtml .= '<label class="mwb_upsell_bump_checkbox_container">';
-	$bumphtml .= '<input type="checkbox" ' . $check . ' name="add_offer_in_cart_checkbox" class ="add_offer_in_cart">';
+	$bumphtml .= '<input type="checkbox" ' . $check . ' name="add_offer_in_cart_checkbox" class ="add_offer_in_cart" id="maincheckbox">';
 	$bumphtml .= '<span class="checkmark"></span>';
 	$bumphtml .= '</label>';
 	$bumphtml .= '<h5>' . $title . '</h5>';
@@ -808,7 +785,6 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 
 	// Wrapper div end.
 	$bumphtml .= '</div>';
-
 	// Parent wrapper end.
 	$bumphtml .= '</div></div>';
 
@@ -1220,7 +1196,9 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 					<span><?php echo esc_html( $product->get_short_description() ); ?></span><br>
 					<?php
 						$attributes = $product->get_variation_attributes();
+						// To get the default attributes of this variation product.
 						$attributes_default = $product->get_default_attributes();
+
 						// Return if no attributes are present.
 					if ( empty( $attributes ) ) {
 						return;
@@ -1239,7 +1217,6 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 
 						<div class="mwb_ubo_input_row">
 							<p class="mwb_ubo_bump_attributes_name">
-
 								<!-- In case slug is encountered. -->
 								<?php
 								// $show_title = str_replace( 'pa_', '', $attribute_name );
@@ -1248,17 +1225,16 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 								<?php $attribute_name = str_replace( ' ', '-', $attribute_name ); ?>
 								<?php echo esc_html( $show_title ); ?>
 							</p>
-
 							<?php
 								// Function to return variations select html.
 								$variation_dropdown = mwb_ubo_lite_show_variation_dropdown(
 									array(
-										'options'   => $options,
-										'attribute' => $attribute_name,
-										'product'   => $product,
-										'selected'  => isset( $attributes_default[ $attribute_name ] ) ? $attributes_default[ $attribute_name ] : '',
-										'id'        => 'attribute_' . strtolower( $attribute_name ),
-										'class'     => 'mwb_upsell_offer_variation_select',
+										'options'          => $options,
+										'attribute'        => $attribute_name,
+										'product'          => $product,
+										'selected'         => isset( $attributes_default[ $attribute_name ] ) ? $attributes_default[ $attribute_name ] : '',
+										'id'               => 'attribute_' . strtolower( $attribute_name ),
+										'class'            => 'mwb_upsell_offer_variation_select',
 										'order_bump_index' => $order_bump_index,
 									)
 								);
@@ -1270,13 +1246,46 @@ function mwb_ubo_lite_show_variation_popup( $product = '', $order_bump_index = '
 						</div>
 
 					<?php endforeach; ?>
+					<!-- Custom fields with loop will be shown here starts. -->
+					<!-- VARIATION -->
 
+					<!-- The loop should run only when the pro version is enabled and the custom fields set option is set. -->
+					<?php
+					// If pro exists.
+					if ( mwb_ubo_lite_if_pro_exists() ) {
+						// If option to show the custom fields is also set.
+						$option_bump_list = get_option( 'mwb_ubo_bump_list' );
+						foreach ( $option_bump_list as $key => $value ) {
+							if ( $key == $order_bump_index ) {
+								if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
+									// Both conditions satisfied.
+									// Match the index and show the input fields that were assigned to a particular Order Bump.
+									$all_values = get_option( 'custom_form_values_all_keys_collect', false );
+									if ( $all_values != false ) {
+										foreach ( $all_values as $key => $value ) {
+											$arr = get_option( 'custom_form_values_' . $value );
+											if ( $order_bump_index == $arr['order_bump_id'] ) {
+												?>
+											<!-- Custom input field name. -->
+											<label class="mwb_ubo_price_html_for_variations" for=<?php echo $arr['name']; ?> ><?php echo esc_html( $arr['name'] ); ?></label>
+											<input type = <?php echo $arr['type']; ?> placeholder = <?php echo $arr['placeholder']; ?> class = "mwb_bump_popup_custom_input_common_class_variation"  id="mwb_bump_popup_custom_input_<?php echo $arr['name']; ?>" name=<?php echo $arr['name']; ?> required ><br><br>
+												<?php
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					?>
+
+					<!-- Custom fields with loop ends -->
 					<!-- Add to cart button starts. -->
 					<button name="add-to-cart" class="single_add_to_cart_button button alt mwb_ubo_bump_add_to_cart_button" offer_bump_index = <?php echo esc_html( $order_bump_index ); ?> >
 						<?php esc_html_e( 'Add this offer to cart', 'upsell-order-bump-offer-for-woocommerce' ); ?>
 					</button>
 					<!-- Add to cart button ends. -->
-					
+
 				</div>
 				<!-- Variation Select ends. -->
 
@@ -1873,7 +1882,7 @@ function mwb_ubo_lite_reload_required_after_adding_offer( $product = '' ) {
  * @param   int    $order_bump_index Index of the Order Bump being shown on page.
  * @since   1.0.0
  */
-function mwb_ubo_lite_show_custom_fields_popup( $product = '', $order_bump_index = '' ) {
+function _mwb_ubo_lite_show_custom_fields_popup( $product = '', $order_bump_index = '' ) {
 	?>
 
 	<!-- HTML for popup wrapper starts. -->	
@@ -1929,4 +1938,54 @@ function mwb_ubo_lite_show_custom_fields_popup( $product = '', $order_bump_index
 	<!-- HTML for popup wrapper ends. -->
 	<?php
 }
+
+/**
+ * Adding html for the popup to show custom fields on the checkout page.
+ *
+ * @param   object $product         The variable parent product.
+ * @param   int    $order_bump_index Index of the Order Bump being shown on page.
+ * @since   1.0.0
+ */
+function mwb_ubo_lite_show_custom_fields_popup( $product = '', $order_bump_index = '' ) {
+	?>
+
+	<!-- HTML for popup wrapper starts. -->	
+	<div class="mwb_bump_popup_custom_input_wrapper mwb_bump_popup_<?php echo esc_html( $order_bump_index ); ?>">
+		<!-- HTML for popup content wrapper starts. -->	
+		<div class="mwb_bump_popup_custom_input_content">
+
+			<!-- Inner custom wrapper starts. -->
+			<div class="mwb_bump_popup_custom_input_inner_content">
+
+				<!-- Close button starts. -->
+				<span class="mwb_bump_popup_close_simple" offer_bump_index = '<?php echo esc_html( $order_bump_index ); ?>' class="variation_id_selected" >
+					<img src= <?php echo esc_url( UPSELL_ORDER_BUMP_OFFER_FOR_WOOCOMMERCE_URL . 'public/resources/icons/close.png' ); ?>>
+				</span>
+				<?php
+				$all_values = get_option( 'custom_form_values_all_keys_collect', false );
+				foreach ( $all_values as $key => $value ) {
+					$arr = get_option( 'custom_form_values_' . $value );
+					if ( $order_bump_index == $arr['order_bump_id'] ) {
+						$this_name = $arr['name'];
+						?>
+					<!-- Custom input field name. -->
+					<span class="mwb_ubo_price_html_for_variation" offer_bump_index = <?php echo esc_html( $order_bump_index ); ?> ></span>
+
+					<label class="mwb_ubo_price_html_for_variation" for=<?php echo $arr['name']; ?> ><?php echo esc_html( $arr['name'] ); ?></label>
+					<input type=<?php echo $arr['type']; ?> placeholder=<?php echo $arr['placeholder']; ?> class="mwb_bump_popup_custom_input_common_class"  id="mwb_bump_popup_custom_input_<?php echo $arr['name']; ?>" name=<?php echo $arr['name']; ?> ><br><br>
+						<?php
+					}
+				}
+				?>
+					<!-- Add to cart button starts. -->
+					<input type='button' name='add-to-cart' value='Submit' id='mwb_bump_checkout_popup' offer_bump_index = <?php echo esc_html( $order_bump_index ); ?>>	
+					<!-- Add to cart button ends. -->
+				</div> <!-- Inner custom wrapper ends -->
+		</div>
+		<!-- HTML for popup content wrapper ends. -->	
+	</div>
+	<!-- HTML for popup wrapper ends. -->
+	<?php
+}
+
 

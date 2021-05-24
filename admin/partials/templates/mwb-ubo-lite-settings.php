@@ -68,7 +68,8 @@ if ( isset( $_POST['mwb_upsell_bump_common_settings_save'] ) ) {
 	// By default plugin will be enabled.
 	$mwb_bump_enable_plugin = ! empty( $mwb_ubo_global_options['mwb_bump_enable_plugin'] ) ? $mwb_ubo_global_options['mwb_bump_enable_plugin'] : '';
 
-	$mwb_bump_upsell_global_options['mwb_bump_enable_plugin_form'] = ! empty( $_POST['mwb_bump_enable_plugin_form'] ) ? sanitize_text_field( wp_unslash( $_POST['mwb_bump_enable_plugin_form'] ) ) : 'no';
+	// Custom form on checkout page.
+	$mwb_bump_enable_plugin_form = ! empty( $mwb_ubo_global_options['mwb_bump_enable_plugin_form'] ) ? $mwb_ubo_global_options['mwb_bump_enable_plugin_form'] : 'no';
 
 	// Bump Offer skip.
 	$mwb_bump_enable_skip = ! empty( $mwb_ubo_global_options['mwb_bump_skip_offer'] ) ? $mwb_ubo_global_options['mwb_bump_skip_offer'] : '';
@@ -205,33 +206,22 @@ if ( isset( $_POST['mwb_upsell_bump_common_settings_save'] ) ) {
 					<th scope="row" class="titledesc">
 						<label for="mwb_ubo_temp_adaption_select"><?php esc_html_e( 'Offer Adaption settings', 'upsell-order-bump-offer-for-woocommerce' ); ?></label>
 					</th>
-
 					<?php
-
 					$mwb_ubo_temp_adaptions_options = array(
 						'yes'   => esc_html__( 'Free Width', 'upsell-order-bump-offer-for-woocommerce' ),
 						'no'    => esc_html__( 'Fixed Width', 'upsell-order-bump-offer-for-woocommerce' ),
 					);
-
 					?>
-
 					<td class="forminp forminp-text">
-
 						<?php
 							$attribute_description = esc_html__( 'If Free Width, the Order Bump Offer will adapt to the complete width of it\'s parent location area else it will be fixed.', 'upsell-order-bump-offer-for-woocommerce' );
 							mwb_ubo_lite_help_tip( $attribute_description );
 						?>
-
 						<select id="mwb_ubo_temp_adaption_select" name="mwb_ubo_temp_adaption" >
-
 							<?php foreach ( $mwb_ubo_temp_adaptions_options as $key => $value ) : ?>
-
 								<option <?php selected( $mwb_ubo_temp_adaption, $key ); ?> value="<?php echo esc_html( $key ); ?>"><?php echo esc_html( $value ); ?></option>
-								
 							<?php endforeach; ?>
-
 						</select>
-
 					</td>
 				</tr>
 				<!-- Template adaption ends. -->
@@ -241,45 +231,27 @@ if ( isset( $_POST['mwb_upsell_bump_common_settings_save'] ) ) {
 					<th scope="row" class="titledesc">
 						<label for="mwb_ubo_offer_location"><?php esc_html_e( 'Offer Location', 'upsell-order-bump-offer-for-woocommerce' ); ?></label>
 					</th>
-
 					<?php
-
 					$offer_locations_array = array(
 						'_before_order_summary' => esc_html__( 'Before Order Summary', 'upsell-order-bump-offer-for-woocommerce' ),
 						'_before_payment_gateways' => esc_html__( 'Before Payment Gateways', 'upsell-order-bump-offer-for-woocommerce' ),
 						'_after_payment_gateways' => esc_html__( 'After Payment Gateways', 'upsell-order-bump-offer-for-woocommerce' ),
 						'_before_place_order_button' => esc_html__( 'Before Place Order Button', 'upsell-order-bump-offer-for-woocommerce' ),
 					);
-
 					?>
-
 					<td class="forminp forminp-text">
-
 						<?php
 							$attribute_description = esc_html__( 'Choose the location where the Bump Offer will be displayed on the Checkout page.', 'upsell-order-bump-offer-for-woocommerce' );
 							mwb_ubo_lite_help_tip( $attribute_description );
 						?>
-
 						<select id="mwb_ubo_offer_location" name="mwb_ubo_offer_location" >
-
 							<?php foreach ( $offer_locations_array as $key => $value ) : ?>
-
 								<option <?php selected( $bump_offer_location, $key ); ?> value="<?php echo esc_html( $key ); ?>"><?php echo esc_html( $value ); ?></option>	
-								
 							<?php endforeach; ?>
-
 						</select>
-
 					</td>
 				</tr>
 				<!-- Offer location end. -->
-
-				
-
-
-
-				
-
 				<!-- Features after v1.0.2 -->
 
 				<!-- Add version compare to dependent plugin -->

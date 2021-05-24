@@ -395,6 +395,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce {
 			// Unset Smart Offer Upgrade in case as it's a pro feature.
 			$single_first_bump[ key( $mwb_ubo_offer_array_collection ) ]['mwb_ubo_offer_replace_target'] = 'no';
 
+			// Unset custom fields if pro verison doesnot exist.
+			$single_first_bump[ key( $mwb_ubo_offer_array_collection ) ]['mwb_ubo_offer_add_custom_fields'] = 'no';
+
 			return $single_first_bump;
 		}
 	}
