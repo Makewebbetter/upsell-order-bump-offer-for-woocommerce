@@ -11,8 +11,8 @@
 
 /**
  * If pro Add-on is present and activated/valid.
- *Function to fetch the Unique ID from mwb_ubo_bump_list associated with this bump.
- * @since    1.0.0
+ * Function to fetch the Unique ID from mwb_ubo_bump_list associated with this bump.
+ * @since 1.0.0
  */
 function mwb_ubo_lite_if_pro_exists() {
 
@@ -24,15 +24,16 @@ function mwb_ubo_lite_if_pro_exists() {
 
 	return false;
 }
+
 /**
  *  Function to fetch the Unique ID from mwb_ubo_bump_list associated with this bump.
+ * @param $mwb_upsell_bump_id
  */
 function mwb_ubo_lite_fetch_unique_id( $mwb_upsell_bump_id ) {
 	$mwb_created_upsell_bumps = get_option( 'mwb_ubo_bump_list', array() );
 	if ( ! empty( $mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['mwb_upsell_bump_used_count'] ) ) {
 		$unique_bump_id = $mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['mwb_upsell_bump_used_count'];
 	} else {
-		print_r( 'Could not generate the Unqiue ID for this Order Bump.' );
 		$unique_bump_id = 0;
 	}
 	return $unique_bump_id;
@@ -701,8 +702,12 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 	$option_bump_list = get_option( 'mwb_ubo_bump_list' );
 	foreach ( $option_bump_list as $key => $value ) {
 		if ( $key == $encountered_order_bump_id ) {
-			if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
-				$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="show">';
+			if ( isset( $value['mwb_ubo_offer_add_custom_fields'] ) ) {
+				if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
+					$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="show">';
+				} else {
+					$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="hide">';
+				}
 			} else {
 				$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="hide">';
 			}
@@ -887,13 +892,13 @@ function mwb_ubo_lite_fetch_bump_offer_details( $encountered_bump_array_index, $
 	$price_incl_tax = wc_get_price_including_tax( $_product );  // Price with tax.
 
 	// Got all details.
-	$bump['id'] = $offer_id;
-	$bump['offer_type'] = $offer_id;
-	$bump['target_key'] = $mwb_upsell_bump_target_key;
-	$bump['name'] = get_the_title( $bump['id'] );
+	$bump['id']                         = $offer_id;
+	$bump['offer_type']                 = $offer_id;
+	$bump['target_key']                 = $mwb_upsell_bump_target_key;
+	$bump['name']                       = get_the_title( $bump['id'] );
 	$bump['discount_price_without_tax'] = $price_excl_tax;
-	$bump['discount_price_with_tax'] = $price_incl_tax;
-	$bump['price_type'] = $price_type;
+	$bump['discount_price_with_tax']    = $price_incl_tax;
+	$bump['price_type']                 = $price_type;
 
 	$bump['design_text'] = ! empty( $encountered_bump_array['design_text'] ) ? $encountered_bump_array['design_text'] : array();
 
@@ -930,12 +935,12 @@ function mwb_ubo_lite_fetch_bump_offer_details( $encountered_bump_array_index, $
 
 		if ( ! empty( $inclusive ) ) {
 
-			$bump['bump_price_html'] = wc_price( $bump['discount_price_with_tax'] );
+			$bump['bump_price_html']    = wc_price( $bump['discount_price_with_tax'] );
 			$bump['bump_price_at_zero'] = $bump['discount_price_with_tax'];
 
 		} else {
 
-			$bump['bump_price_html'] = wc_price( $bump['discount_price_without_tax'] );
+			$bump['bump_price_html']    = wc_price( $bump['discount_price_without_tax'] );
 			$bump['bump_price_at_zero'] = $bump['discount_price_without_tax'];
 		}
 	}
@@ -996,9 +1001,9 @@ function mwb_ubo_lite_check_category_in_cart( $category_target_id = '' ) {
 	// Start of the loop that fetches the cart items.
 	foreach ( WC()->cart->get_cart() as $cart_key => $cart_item_object ) {
 
-		$product = $cart_item_object['data'];
+		$product    = $cart_item_object['data'];
 		$product_id = ! empty( $product->get_parent_id() ) ? $product->get_parent_id() : $product->get_id();
-		$terms = get_the_terms( $product_id, 'product_cat' );
+		$terms      = get_the_terms( $product_id, 'product_cat' );
 
 		if ( ! empty( $terms ) ) {
 
@@ -1006,7 +1011,7 @@ function mwb_ubo_lite_check_category_in_cart( $category_target_id = '' ) {
 			foreach ( $terms as $term ) {
 
 				// Category id is the product category.
-				$category_id = $term->term_id;
+				$category_id        = $term->term_id;
 				$category_parent_id = $term->parent;
 
 				if ( 'is_parent' == $target_parent_id && $category_target_id == $category_parent_id ) {
@@ -1433,7 +1438,7 @@ function mwb_ubo_lite_custom_price_html( $product_id = '', $bump_discount = '', 
 	}
 
 	$orginal_price = $product->get_price();
-	$sale_price = $product->get_sale_price();
+	$sale_price    = $product->get_sale_price();
 	$regular_price = $product->get_regular_price();
 
 	// Case of variable parent product.

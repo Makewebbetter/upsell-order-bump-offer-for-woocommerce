@@ -232,7 +232,6 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		if ( null == WC()->session->get( 'restrict_coupon_on_bump_target' ) ) {
 			WC()->session->set( 'restrict_coupon_on_bump_target', $bump_product_id );
 		}
-
 		if ( ! empty( $_product ) && $_product->has_child() ) {
 			// Generate default price html.
 			$bump_price_html = mwb_ubo_lite_custom_price_html( $bump_product_id, $bump_discounted_price );
@@ -750,9 +749,8 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 					if ( $cart_offer_item['mwb_ubo_target_key'] == $key_to_be_removed ) {
 
 						// If the same target key is found in order cart item, Handle offer product too.
-						$bump_index = ! empty( $cart_offer_item['mwb_ubo_offer_index'] ) ? $cart_offer_item['mwb_ubo_offer_index'] : '';
-						$bump_id = ! empty( $cart_offer_item['mwb_ubo_bump_id'] ) ? $cart_offer_item['mwb_ubo_bump_id'] : '';
-
+						$bump_index    = ! empty( $cart_offer_item['mwb_ubo_offer_index'] ) ? $cart_offer_item['mwb_ubo_offer_index'] : '';
+						$bump_id       = ! empty( $cart_offer_item['mwb_ubo_bump_id'] ) ? $cart_offer_item['mwb_ubo_bump_id'] : '';
 						$sales_by_bump = new Mwb_Upsell_Order_Bump_Report_Sales_By_Bump( $bump_id );
 
 						// When Target dependency is set to Remove Offer product.
@@ -840,7 +838,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 	/**
 	 * Function to restrict the use of coupons on the bump offer product.
-	 * COUPON RESTRICTION.
+	 * COUPON RESTRICTION Function.
 	 */
 	public function woocommerce_custom_price_to_cart_item_remove_coupons( $cart_object ) {
 		if ( ( WC()->session->__isset( 'restrict_coupon_on_bump_target' ) ) && ( ! empty( WC()->cart->get_applied_coupons() )) ) {
@@ -894,6 +892,14 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		}
 	}
 
+	/**
+	 * Manipulate the prices on the applied coupons HTML whcih is shown on the checkout page when any coupon is applied to cart.
+	 *
+	 * @param [type] $coupon_html           This is the HTML Object shown on the checkout page.
+	 * @param [type] $coupon                The coupon object will give us all the properties of the coupons being applied.
+	 * @param [type] $discount_amount_html  The HTML (Manupulated) Object shown on the checkout page.
+	 * @return $coupon_html
+	 */
 	public function custom_cart_totals_coupon_html( $coupon_html, $coupon, $discount_amount_html ) {
 		// For percent coupon types only.
 		if ( ( WC()->session->__isset( 'restrict_coupon_on_bump_target' ) ) && ( ! empty( WC()->cart->get_applied_coupons() ) ) ) {
@@ -950,6 +956,8 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 			return $coupon_html;
 		}
 	}
+
+
 	/**
 	 * Function to unset the session if on checkout page the bump was unchecked.
 	 *
@@ -964,16 +972,21 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		WC()->session->__unset( 'restrict_coupon_on_bump_target' );
 	}
 
+	/**
+	 * Undocumented function
+	 *
+	 * @return void
+	 */
 	public function lets_see() {
-		$total_contents = WC()->cart->cart_contents_count;
-		$discount       = WC()->cart->discount_total;
+		$total_contents        = WC()->cart->cart_contents_count;
+		$discount              = WC()->cart->discount_total;
 		$bump_offer_product_id = 20;
-		$cart = WC()->cart->get_cart();
-		$applied_coupons = WC()->cart->get_applied_coupons();
-		$total_of_cart = floatval( preg_replace( '#[^\d.]#', '', WC()->cart->get_cart_total() ) );
+		$cart                  = WC()->cart->get_cart();
+		$applied_coupons       = WC()->cart->get_applied_coupons();
+		$total_of_cart         = floatval( preg_replace( '#[^\d.]#', '', WC()->cart->get_cart_total() ) );
 		foreach ( $cart as $item => $values ) {
 			$products_ids_array[] = $values['product_id'];
-			$price[] = get_post_meta( $values['product_id'], '_price', true );
+			$price[]              = get_post_meta( $values['product_id'], '_price', true );
 		}
 		// Now we have two arrays one with product id and one with all prices.
 		// Bump id and its price will be at same index but in different arrays.
@@ -1132,11 +1145,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		 */
 
 		// Get Multiple Order Bumps limit. Default limit is 1.
-		$order_bump_limit = ! empty( $mwb_ubo_global_options['mwb_bump_order_bump_limit'] ) ? $mwb_ubo_global_options['mwb_bump_order_bump_limit'] : '1';
-
-		$global_skip_settings = ! empty( $mwb_ubo_global_options['mwb_bump_skip_offer'] ) ? $mwb_ubo_global_options['mwb_bump_skip_offer'] : 'yes';
-
-		$encountered_bump_key_array = array();
+		$order_bump_limit             = ! empty( $mwb_ubo_global_options['mwb_bump_order_bump_limit'] ) ? $mwb_ubo_global_options['mwb_bump_order_bump_limit'] : '1';
+		$global_skip_settings         = ! empty( $mwb_ubo_global_options['mwb_bump_skip_offer'] ) ? $mwb_ubo_global_options['mwb_bump_skip_offer'] : 'yes';
+		$encountered_bump_key_array   = array();
 		$encountered_target_key_array = array();
 
 		if ( ! empty( $order_bump_collection ) && is_array( $order_bump_collection ) ) {
@@ -1166,7 +1177,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 				 */
 				if ( empty( $single_bump_array['mwb_upsell_bump_schedule'] ) ) {
 
-					// Could be '0' or array( '0' );
+					// Could be '0' or array( '0' );.
 					$single_bump_array['mwb_upsell_bump_schedule'] = array( '0' );
 
 				}
@@ -1337,7 +1348,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		if ( ! empty( $encountered_bump_key_array ) && ! empty( $encountered_target_key_array ) ) {
 
 			$result = array(
-				'encountered_bump_array' => $encountered_bump_key_array, // Order Bump IDs to be shown.
+				'encountered_bump_array'     => $encountered_bump_key_array, // Order Bump IDs to be shown.
 				'mwb_upsell_bump_target_key' => $encountered_target_key_array,
 			);
 
@@ -1476,8 +1487,10 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 
 					// Add post meta as this is a Order Bump order.
 					update_post_meta( $order_id, 'mwb_bump_order', 'true' );
+
 					// Add post meta for processing Success Rate and Stats on Thankyou page.
 					update_post_meta( $order_id, 'mwb_bump_order_process_sales_stats', 'true' );
+
 					break;
 				}
 			}
@@ -1590,11 +1603,15 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	 * This function is made to check if whether to show  custom fields or not for a particular Order Bump.
 	 */
 	public function show_or_hide_custom_fields_toggle() {
+
 		$id = isset( $_POST['id'] ) ? $_POST['id'] : '';
+
 		if ( '' == $id ) {
 			return;
 		}
+
 		$option_bump_list = get_option( 'mwb_ubo_bump_list' );
+
 		foreach ( $option_bump_list as $key => $value ) {
 			if ( $key == $id ) {
 				if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
@@ -1630,6 +1647,8 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		print_r( $_SESSION['bump_use_count'] );
 		wp_die();
 	}
+
+
 	/**
 	 * Function to upgrade the value of count in database.
 	 *
@@ -1650,7 +1669,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 			// echo 'not set';
 			// echo '<meta http-equiv="Refresh" content="1">';
 		}
-		$count_in_database      = $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'];
+		$count_in_database = $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'];
 		// Convert the value to integer, upgrade it, change to string again and upload it.
 		$count_in_database = (int) $count_in_database;
 		++$count_in_database;
@@ -1659,6 +1678,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		update_option( 'mwb_ubo_bump_list', $all_bumps_info );
 		WC()->session->__unset( 'bump_use_count' );
 	}
+
 
 	public function demo_details_for_the_cart_1() {
 		// This will get all the coupons.

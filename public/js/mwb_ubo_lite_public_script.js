@@ -171,28 +171,62 @@ jQuery(document).ready( function($) {
      */
     
     $(document).on( 'click', '.add_offer_in_cart', function(e) {
-        order_bump_index     = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
-        parent_wrapper_class = '.mwb_ubo_wrapper_' + order_bump_index;
-        order_bump_id        = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_id' ).val();      
-        if( mwb_ubo_count_of_usage_of_orderbump(order_bump_id) == 'positive' ) {
 
-            $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'pointer-events', 'none' );
+        // order_bump_index      = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
+        // parent_wrapper_class  = '.mwb_ubo_wrapper_' + order_bump_index;
+        order_bump_id         = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_id' ).val();
+        check_for_pro_version = $(this).closest('.mwb_upsell_offer_main_wrapper').find('#bump_hidden_check_pro').val(); 
+        
+        switch(check_for_pro_version) {
+            case 'inactive':
+                process_the_bump_order_and_add_to_cart();
+                break;
+            case 'active':
+                if( mwb_ubo_count_of_usage_of_orderbump(order_bump_id) == 'positive' ) {
+                    process_the_bump_order_and_add_to_cart();
+                }
+                if(mwb_ubo_count_of_usage_of_orderbump(order_bump_id) == 'negative') {
+                    alert('Limit reached for this Order Bump, try making another one');
+                    return false;
+                }
+                break;
+            default:
+                process_the_bump_order_and_add_to_cart();
+                break;
+        }      
+    });
+
+/*=======================================================================================================================================
+                    PURPOSE OF THE FUNCTION, process_the_bump_order_and_add_to_cart()
+                        If the pro version is enabled check if the bump can be used anymore and run this function.
+                        If the free version is enabled only, run this function and no need to check if the bump can be used anymore.
+=========================================================================================================================================*/
+
+    function process_the_bump_order_and_add_to_cart() {
+
+        order_bump_index      = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
+        parent_wrapper_class  = '.mwb_ubo_wrapper_' + order_bump_index;
+        order_bump_id         = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_id' ).val();
+        check_for_pro_version = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find('#bump_hidden_check_pro').val();
+
+        $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'pointer-events', 'none' );
             $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'opacity', '0.4' );
 
             if ( $( parent_wrapper_class + ' .add_offer_in_cart' ).is( ':checked' ) ) {
+                
                 // Show loader for Variable offers.
-                if( 'variable' == $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id_type' ).val() ) {
+                if( 'variable' == $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id_type' ).val() ) {       
                     $( '.mwb_bump_popup_loader' ).css( 'display','flex' );
-                    is_variable_product = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id_type' ).val()
+                    is_variable_product = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id_type' ).val()
                 } else {
                     $( '.mwb_bump_popup_loader' ).css( 'display','flex' );
                     is_variable_product = '';
                 }
 
-                bump_id              = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id' ).val(); // offer product id.
-                bump_discount        = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_discount' ).val();
-                bump_target_cart_key = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.target_id_cart_key' ).val();
-                smart_offer_upgrade  = $(this).closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_smo' ).val();
+                bump_id              = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_id' ).val(); // offer product id.
+                bump_discount        = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.offer_shown_discount' ).val();
+                bump_target_cart_key = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.target_id_cart_key' ).val();
+                smart_offer_upgrade  = $(document).find('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_smo' ).val();
 
                 check_for_pro        = $('#bump_hidden_check_pro').val();
                 custom_form_toggle   = $('.custom_fields_for_orderbump_toggle').val();
@@ -261,17 +295,6 @@ jQuery(document).ready( function($) {
                                     location.reload();
                                 }
                             }
-                            // $( 'body' ).trigger( 'update_checkout' );
-                            // $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'pointer-events', 'all' );
-                            // $( '.mwb_ubo_wrapper_' + order_bump_index ).css( 'opacity', '1' );
-
-                            // // When Reload is required.
-                            // if( 'subs_reload' == msg ) {
-                                
-                            //     // Scroll Top and Reload.
-                            //     $("html, body").scrollTop( 300 );
-                            //     location.reload();
-                            // }
                         }
                         // document.getElementById("#maincheckbox").disabled = false;
                     } 
@@ -301,11 +324,7 @@ jQuery(document).ready( function($) {
                 });
                 // $('.titledesc').hide();
             }
-        } if(mwb_ubo_count_of_usage_of_orderbump(order_bump_id) == 'negative') {
-            alert('Limit reached for this Order Bump, try making another one');
-            return false;
-        }
-    });
+    }
 /*=======================================================================
                     Select the variations in popup.
 ========================================================================*/

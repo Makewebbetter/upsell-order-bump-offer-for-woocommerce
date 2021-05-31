@@ -145,20 +145,20 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 				wp_register_script( 'jquery-tiptip', WC()->plugin_url() . '/assets/js/jquery-tiptip/jquery.tipTip.js', array( 'jquery' ), WC_VERSION, true );
 					$locale  = localeconv();
 					$decimal = isset( $locale['decimal_point'] ) ? $locale['decimal_point'] : '.';
-					$params = array(
+					$params  = array(
 						/* Translators: %s: decimal. */
-						'i18n_decimal_error'                => sprintf( __( 'Please enter in decimal (%s) format without thousand separators.', 'upsell-order-bump-offer-for-woocommerce' ), $decimal ),
+						'i18n_decimal_error'               => sprintf( __( 'Please enter in decimal (%s) format without thousand separators.', 'upsell-order-bump-offer-for-woocommerce' ), $decimal ),
 						/* Translators: %s: price decimal separator. */
-						'i18n_mon_decimal_error'            => sprintf( __( 'Please enter in monetary decimal (%s) format without thousand separators and currency symbols.', 'upsell-order-bump-offer-for-woocommerce' ), wc_get_price_decimal_separator() ),
-						'i18n_country_iso_error'            => __( 'Please enter in country code with two capital letters.', 'upsell-order-bump-offer-for-woocommerce' ),
-						'i18_sale_less_than_regular_error'  => __( 'Please enter in a value less than the regular price.', 'upsell-order-bump-offer-for-woocommerce' ),
-						'decimal_point'                     => $decimal,
-						'mon_decimal_point'                 => wc_get_price_decimal_separator(),
-						'strings' => array(
+						'i18n_mon_decimal_error'           => sprintf( __( 'Please enter in monetary decimal (%s) format without thousand separators and currency symbols.', 'upsell-order-bump-offer-for-woocommerce' ), wc_get_price_decimal_separator() ),
+						'i18n_country_iso_error'           => __( 'Please enter in country code with two capital letters.', 'upsell-order-bump-offer-for-woocommerce' ),
+						'i18_sale_less_than_regular_error' => __( 'Please enter in a value less than the regular price.', 'upsell-order-bump-offer-for-woocommerce' ),
+						'decimal_point'                    => $decimal,
+						'mon_decimal_point'                => wc_get_price_decimal_separator(),
+						'strings'                          => array(
 							'import_products' => __( 'Import', 'upsell-order-bump-offer-for-woocommerce' ),
 							'export_products' => __( 'Export', 'upsell-order-bump-offer-for-woocommerce' ),
 						),
-						'urls' => array(
+						'urls'                             => array(
 							'import_products' => esc_url_raw( admin_url( 'edit.php?post_type=product&page=product_importer' ) ),
 							'export_products' => esc_url_raw( admin_url( 'edit.php?post_type=product&page=product_exporter' ) ),
 						),
@@ -196,7 +196,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 						'mwb_ubo_lite_ajaxurl',
 						// admin_url( 'admin-ajax.php' ),
 						array(
-							'ajaxurl'       => admin_url( 'admin-ajax.php' ),
+							'ajaxurl'     => admin_url( 'admin-ajax.php' ),
 							'mobile_view' => wp_is_mobile(),
 							'auth_nonce'  => wp_create_nonce( 'mwb_ubo_lite_nonce' ),
 						)
@@ -319,14 +319,14 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 	 */
 	public function search_products_for_bump() {
 
-		$return = array();
+		$return         = array();
 		$search_results = new WP_Query(
 			array(
-				's'                     => ! empty( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '',
-				'post_type'             => array( 'product', 'product_variation' ),
-				'post_status'           => array( 'publish' ),
-				'ignore_sticky_posts'   => 1,
-				'posts_per_page'        => -1,
+				's'                   => ! empty( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '',
+				'post_type'           => array( 'product', 'product_variation' ),
+				'post_status'         => array( 'publish' ),
+				'ignore_sticky_posts' => 1,
+				'posts_per_page'      => -1,
 			)
 		);
 		if ( $search_results->have_posts() ) :
@@ -348,9 +348,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 					continue;
 				}
 
-				$product = wc_get_product( $search_results->post->ID );
+				$product      = wc_get_product( $search_results->post->ID );
 				$downloadable = $product->is_downloadable();
-				$stock = $product->get_stock_status();
+				$stock        = $product->get_stock_status();
 				$product_type = $product->get_type();
 
 				$unsupported_product_types = array(
@@ -385,14 +385,14 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 	 */
 	public function search_products_for_offers() {
 
-		$return = array();
+		$return         = array();
 		$search_results = new WP_Query(
 			array(
-				's'                     => ! empty( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '',
-				'post_type'             => array( 'product', 'product_variation' ),
-				'post_status'           => array( 'publish' ),
-				'ignore_sticky_posts'   => 1,
-				'posts_per_page'        => -1,
+				's'                   => ! empty( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '',
+				'post_type'           => array( 'product', 'product_variation' ),
+				'post_status'         => array( 'publish' ),
+				'ignore_sticky_posts' => 1,
+				'posts_per_page'      => -1,
 			)
 		);
 
@@ -415,9 +415,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 					continue;
 				}
 
-				$product = wc_get_product( $search_results->post->ID );
+				$product      = wc_get_product( $search_results->post->ID );
 				$downloadable = $product->is_downloadable();
-				$stock = $product->get_stock_status();
+				$stock        = $product->get_stock_status();
 				$product_type = $product->get_type();
 
 				$unsupported_product_types = array(
@@ -453,10 +453,10 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 	public function search_product_categories_for_bump() {
 
 		$return = array();
-		$args = array(
-			'search'     => ! empty( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '',
-			'taxonomy'   => 'product_cat',
-			'orderby'    => 'name',
+		$args   = array(
+			'search'   => ! empty( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '',
+			'taxonomy' => 'product_cat',
+			'orderby'  => 'name',
 		);
 
 		$product_categories = get_terms( $args );
@@ -503,7 +503,7 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 
 					if ( ! empty( wc_get_order_item_meta( $item_id, 'is_order_bump_purchase', true ) ) || ! empty( wc_get_order_item_meta( $item_id, 'Bump Offer', true ) ) ) {
 
-						$order_bump_purchased = true;
+						$order_bump_purchased   = true;
 						$order_bump_item_total += $single_item->get_total();
 					}
 				}
@@ -524,37 +524,37 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 		}
 	}
 
-		/**
-		 * Add Upsell Reporting in Woo Admin reports.
-		 *
-		 * @since       1.4.0
-		 */
+	/**
+	 * Add Upsell Reporting in Woo Admin reports.
+	 *
+	 * @since       1.4.0
+	 */
 	public function add_order_bump_reporting( $reports ) {
 
 		$reports['mwb_order_bump'] = array(
 
-			'title'  => esc_html__( 'Order Bump', 'upsell-order-bump-offer-for-woocommerce' ),
-			'reports'  => array(
+			'title'   => esc_html__( 'Order Bump', 'upsell-order-bump-offer-for-woocommerce' ),
+			'reports' => array(
 
 				'sales_by_date' => array(
-					'title' => esc_html__( 'Order Bump Sales by date', 'upsell-order-bump-offer-for-woocommerce' ),
+					'title'       => esc_html__( 'Order Bump Sales by date', 'upsell-order-bump-offer-for-woocommerce' ),
 					'description' => '',
-					'hide_title' => 1,
-					'callback' => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
+					'hide_title'  => 1,
+					'callback'    => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
 				),
 
 				'sales_by_product' => array(
-					'title' => esc_html__( 'Order Bump Sales by product', 'upsell-order-bump-offer-for-woocommerce' ),
+					'title'       => esc_html__( 'Order Bump Sales by product', 'upsell-order-bump-offer-for-woocommerce' ),
 					'description' => '',
-					'hide_title' => 1,
-					'callback' => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
+					'hide_title'  => 1,
+					'callback'    => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
 				),
 
 				'sales_by_category' => array(
-					'title' => esc_html__( 'Order Bump Sales by category', 'upsell-order-bump-offer-for-woocommerce' ),
+					'title'       => esc_html__( 'Order Bump Sales by category', 'upsell-order-bump-offer-for-woocommerce' ),
 					'description' => '',
-					'hide_title' => 1,
-					'callback' => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
+					'hide_title'  => 1,
+					'callback'    => array( 'Upsell_Order_Bump_Offer_For_Woocommerce_Admin', 'order_bump_reporting_callback' ),
 				),
 			),
 		);
@@ -569,9 +569,9 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Admin {
 	 */
 	public static function order_bump_reporting_callback( $report_type ) {
 
-		$report_file = ! empty( $report_type ) ? str_replace( '_', '-', $report_type ) : '';
+		$report_file      = ! empty( $report_type ) ? str_replace( '_', '-', $report_type ) : '';
 		$preformat_string = ! empty( $report_type ) ? ucwords( str_replace( '_', ' ', $report_type ) ) : '';
-		$class_name = ! empty( $preformat_string ) ? 'Mwb_Upsell_Order_Bump_Report_' . str_replace( ' ', '_', $preformat_string ) : '';
+		$class_name       = ! empty( $preformat_string ) ? 'Mwb_Upsell_Order_Bump_Report_' . str_replace( ' ', '_', $preformat_string ) : '';
 
 		/**
 		 * The file responsible for defining reporting.
