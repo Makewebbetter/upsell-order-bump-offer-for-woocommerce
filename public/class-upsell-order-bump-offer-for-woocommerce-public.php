@@ -164,20 +164,27 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	 * will not work after some time.
 	 */
 	public function check_if_the_bump_can_be_used_anymore() {
+
 		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
 		$response = '';
 		$bump_id  = ! empty( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
+
 		if ( ! empty( get_option( 'mwb_ubo_bump_list' ) ) ) {
 			$all_bump = get_option( 'mwb_ubo_bump_list' );
-			// How many times it has been used till now.
-			$current_count = $all_bump[ $bump_id ]['mwb_upsell_bump_used_count'];
+
+			// Make json in array and count the number of Order IDs.
+			$current_count = count( json_decode( $all_bump[ $bump_id ]['unique_order_ids_for_this_bump'], true ) );
 			// What is the limit that has been set by the admin.
 			$set_limit = $all_bump[ $bump_id ]['mwb_upsell_bump_use_limit'];
-			// If the limit is not set and the bump can be used unlimited..
+
+			// If the limit is not set and the bump can be used unlimited number of times, simply return positive.
 			if ( $set_limit == 'unlimited' ) {
 				$response = 'positive';
+				echo $response;
+				wp_die();
 			}
-			$answer    = $set_limit - $current_count;
+
+			$answer = $set_limit - $current_count;
 			// If the set limit is more than the number of times it has been used, retun true else false.
 			if ( $answer > 0 ) {
 				$response = 'positive';
@@ -1623,28 +1630,32 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		return false;
 	}
 
+
+
+
+	// ===============================================================================================================================================================
+													// LIMIT THE USE OF BUMP OFFER FEATURE STARTS
+	// ===============================================================================================================================================================
+
 	/**
 	 * This function is used to receive the value of count and order bump id and
 	 * set them into a session variable and use them on the thankyou page.
-	 *
 	 */
 	public function send_value_of_count_and_bump_id_start_session() {
-		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
-		// Count variable of the Order Bump being encountered.
-		$count = isset( $_POST['was_order_bump_count'] ) ? sanitize_text_field( wp_unslash( $_POST['was_order_bump_count'] ) ) : '';
-		// ID of the bump being encountered, we are using this so that we can associate the count of using a bump
-		// in the database.
-		$id = isset( $_POST['was_order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['was_order_bump_id'] ) ) : '';
-		// Now store the values in session variable.
-		$session_data_count = array(
-			'count' => $count,
-			'id'    => $id,
-		);
-		if ( null == WC()->session->get( 'bump_use_count' ) ) {
 
+		check_ajax_referer( 'mwb_ubo_lite_nonce', 'nonce' );
+		// $count              = isset( $_POST['was_order_bump_count'] ) ? sanitize_text_field( wp_unslash( $_POST['was_order_bump_count'] ) ) : '';
+		$id                 = isset( $_POST['was_order_bump_id'] ) ? sanitize_text_field( wp_unslash( $_POST['was_order_bump_id'] ) ) : '';
+		$unique_order_ids   = isset( $_POST['order_ids_associated_with_order_bump'] ) ? sanitize_text_field( wp_unslash( $_POST['order_ids_associated_with_order_bump'] ) ) : '';
+		$session_data_count = array(
+			// 'count' => $count,
+			'id'               => $id,
+			'unique_order_ids' => $unique_order_ids,
+		);
+
+		if ( null == WC()->session->get( 'bump_use_count' ) ) {
 			WC()->session->set( 'bump_use_count', $session_data_count );
 		}
-		print_r( $_SESSION['bump_use_count'] );
 		wp_die();
 	}
 
@@ -1655,55 +1666,52 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	 * After the function send_value_of_count_and_bump_id_start_session, upgrade the value of
 	 * count in the database.
 	 */
-	public function update_the_value_count_for_bump_use() {
+	public function update_the_value_count_for_bump_use( $order_id ) {
 
-		$count_of_previous_bump = WC()->session->get( 'bump_use_count' )['count'];
-		$id_of_previous_bump    = WC()->session->get( 'bump_use_count' )['id'];
-		$all_bumps_info         = ! empty( get_option( 'mwb_ubo_bump_list' ) ) ? get_option( 'mwb_ubo_bump_list' ) : '';
+		// $count_of_previous_bump = WC()->session->get( 'bump_use_count' )['count'];
 
-		if ( isset( $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'] ) ) {
-			// Don't refresh the page.
-			// echo 'set hai';
-		} else {
-			// Refresh the page because the count is 0 after the first time it was being reset.
-			// echo 'not set';
-			// echo '<meta http-equiv="Refresh" content="1">';
+		if ( '' == $order_id || empty( $order_id ) ) {
+			return;
 		}
-		$count_in_database = $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'];
-		// Convert the value to integer, upgrade it, change to string again and upload it.
-		$count_in_database = (int) $count_in_database;
-		++$count_in_database;
-		$count_in_database = (string) $count_in_database;
-		$all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'] = $count_in_database;
+		if ( null == WC()->session->get( 'bump_use_count' ) ) {
+			return;
+		}
+
+		$id_of_previous_bump = WC()->session->get( 'bump_use_count' )['id'];
+		$unique_order_ids    = WC()->session->get( 'bump_use_count' )['unique_order_ids'];
+		$all_bumps_info      = ! empty( get_option( 'mwb_ubo_bump_list' ) ) ? get_option( 'mwb_ubo_bump_list' ) : '';
+
+		// Make $unique_order_ids an array , push Order id and convert back to json and send to the database.
+		$unique_order_ids = json_decode( $unique_order_ids, true );
+		if ( ! in_array( $order_id, $unique_order_ids ) ) {
+			array_push( $unique_order_ids, $order_id );
+		}
+		$unique_order_ids = json_encode( $unique_order_ids );
+		$all_bumps_info[ $id_of_previous_bump ]['unique_order_ids_for_this_bump'] = $unique_order_ids;
 		update_option( 'mwb_ubo_bump_list', $all_bumps_info );
 		WC()->session->__unset( 'bump_use_count' );
+
+		// $count_in_database           = $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'];
+
+		// Convert the value to integer, upgrade it, change to string again and upload it.
+		// $count_in_database = (int) $count_in_database;
+		// ++$count_in_database;
+		// $count_in_database = (string) $count_in_database;
+		// $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'] = $count_in_database;
+		// update_option( 'mwb_ubo_bump_list', $all_bumps_info );
 	}
 
+	// ===============================================================================================================================================================
+												// LIMIT THE USE OF BUMP OFFER FEATURE ENDS
+	// ===============================================================================================================================================================
 
-	public function demo_details_for_the_cart_1() {
-		// This will get all the coupons.
-		// $cart = WC()->cart->get_coupons();
-		$cart            = WC()->cart->get_cart();
-		$applied_coupons = WC()->cart->get_applied_coupons();
-		$total_of_cart   = WC()->cart->get_total();
-		// echo '<pre>';
-		foreach ( $cart as $item => $values ) {
-			$products_ids_array[] = $values['product_id'];
-			// $_product =  wc_get_product( $values['data']->get_id()); 
-			// echo "<b>" . $_product->get_title().'</b>  <br> Quantity: '.$values['quantity'].'<br>'; 
-			// $price = get_post_meta($values['product_id'] , '_price', true);
-			// echo "  Price: " . $price . "<br>";
-		}
-		// print_r( WC()->cart->get_total() );
-		foreach ( $products_ids_array as $k=>$v ) {
 
-			if( $v == '185') {
-				// WC()->cart->remove_coupons();.
-				print_r( WC()->cart->get_discount_total() );
-			}
-		}
+	// ===============================================================================================================================================================
+											// STORE ALL THE UNIQUE ORDER ID's WITH PARTICULAR ORDER BUMP FEATURE
+											// BASICALY WE ARE DOING THIS FOR LIMITING THE USE OF ORDER BUMP FEATURE.
+	// ===============================================================================================================================================================
 
-	}
+
 	// End of class.
 
 }

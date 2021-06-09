@@ -40,6 +40,26 @@ function mwb_ubo_lite_fetch_unique_id( $mwb_upsell_bump_id ) {
 }
 
 /**
+ * This function will give the array of Order ID's associated with this bump which will then get stored in the input field above the Order Bump.
+ *
+ * @param [string] $mwb_upsell_bump_id This is the ID of the bump encountered.
+ * @return $unique_order_ids
+ */
+function mwb_ubo_lite_fetch_the_unique_order_ids_array( $mwb_upsell_bump_id ) {
+
+	$mwb_created_upsell_bumps = get_option( 'mwb_ubo_bump_list', array() );
+	if ( isset( $mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['unique_order_ids_for_this_bump'] ) ) {
+		$unique_order_ids = $mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['unique_order_ids_for_this_bump'];
+		$unique_order_ids = json_decode( $unique_order_ids, true );
+	} else {
+		$mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['unique_order_ids_for_this_bump'] = array();
+		$unique_order_ids = $mwb_created_upsell_bumps[ $mwb_upsell_bump_id ]['unique_order_ids_for_this_bump'];
+	}
+	return $unique_order_ids;
+}
+
+
+/**
  * Checks Whether if Pro version is incompatible.
  *
  * @since    1.0.0
@@ -323,17 +343,17 @@ function mwb_ubo_lite_default_global_options() {
 
 	$default_global_options = array(
 
-		'mwb_bump_enable_plugin'            => 'on', // By default plugin will be enabled.
-		'mwb_bump_enable_plugin_form'       => 'no',
-		'mwb_bump_skip_offer'               => 'yes',
-		'mwb_ubo_offer_location'            => '_after_payment_gateways',
-		'mwb_ubo_offer_removal'             => 'yes',
-		'mwb_ubo_temp_adaption'             => 'yes',
-		'mwb_ubo_offer_global_css'          => '',
-		'mwb_ubo_offer_global_js'           => '',
-		'mwb_ubo_offer_price_html'          => 'regular_to_offer',
-		'mwb_ubo_offer_purchased_earlier'   => 'no',
-		'mwb_bump_order_bump_limit'         => '1',
+		'mwb_bump_enable_plugin'          => 'on', // By default plugin will be enabled.
+		'mwb_bump_enable_plugin_form'     => 'no',
+		'mwb_bump_skip_offer'             => 'yes',
+		'mwb_ubo_offer_location'          => '_after_payment_gateways',
+		'mwb_ubo_offer_removal'           => 'yes',
+		'mwb_ubo_temp_adaption'           => 'yes',
+		'mwb_ubo_offer_global_css'        => '',
+		'mwb_ubo_offer_global_js'         => '',
+		'mwb_ubo_offer_price_html'        => 'regular_to_offer',
+		'mwb_ubo_offer_purchased_earlier' => 'no',
+		'mwb_bump_order_bump_limit'       => '1',
 	);
 
 	return $default_global_options;
@@ -348,15 +368,15 @@ function mwb_ubo_lite_offer_default_text() {
 
 	$default_default_text = array(
 
-		'mwb_ubo_discount_title_for_fixed'      => sprintf( '%s %s %s', esc_html__( 'AT JUST', 'upsell-order-bump-offer-for-woocommerce' ), '{dc_price}', esc_html__( '!!', 'upsell-order-bump-offer-for-woocommerce' ) ),
+		'mwb_ubo_discount_title_for_fixed'   => sprintf( '%s %s %s', esc_html__( 'AT JUST', 'upsell-order-bump-offer-for-woocommerce' ), '{dc_price}', esc_html__( '!!', 'upsell-order-bump-offer-for-woocommerce' ) ),
 
-		'mwb_ubo_discount_title_for_percent'    => sprintf( '%s %s', '{dc_%}', esc_html__( 'off only for you !!', 'upsell-order-bump-offer-for-woocommerce' ) ),
+		'mwb_ubo_discount_title_for_percent' => sprintf( '%s %s', '{dc_%}', esc_html__( 'off only for you !!', 'upsell-order-bump-offer-for-woocommerce' ) ),
 
-		'mwb_bump_offer_decsription_text'       => esc_html__( 'A unique and handy product that will benefit you on your existing purchase.', 'upsell-order-bump-offer-for-woocommerce' ),
+		'mwb_bump_offer_decsription_text'    => esc_html__( 'A unique and handy product that will benefit you on your existing purchase.', 'upsell-order-bump-offer-for-woocommerce' ),
 
-		'mwb_upsell_offer_title'                => esc_html__( 'Get this exclusive offer now !!', 'upsell-order-bump-offer-for-woocommerce' ),
+		'mwb_upsell_offer_title'             => esc_html__( 'Get this exclusive offer now !!', 'upsell-order-bump-offer-for-woocommerce' ),
 
-		'mwb_upsell_bump_offer_description'     => esc_html__( 'Hey there, you can get access to this offer by just clicking the checkbox above. Add this offer to your order, you will never get such a discount on any other place on this site.', 'upsell-order-bump-offer-for-woocommerce' ),
+		'mwb_upsell_bump_offer_description'  => esc_html__( 'Hey there, you can get access to this offer by just clicking the checkbox above. Add this offer to your order, you will never get such a discount on any other place on this site.', 'upsell-order-bump-offer-for-woocommerce' ),
 	);
 
 	return $default_default_text;
@@ -701,10 +721,11 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 	// Check if custom form is enabled for this particular Order bump.
 	$option_bump_list = get_option( 'mwb_ubo_bump_list' );
 	foreach ( $option_bump_list as $key => $value ) {
+
 		if ( $key == $encountered_order_bump_id ) {
 			if ( isset( $value['mwb_ubo_offer_add_custom_fields'] ) ) {
 				if ( $value['mwb_ubo_offer_add_custom_fields'] == 'yes' ) {
-					$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="show">';
+				$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="show">';
 				} else {
 					$bumphtml .= '<input type="hidden" class ="custom_fields_for_orderbump_toggle" value="hide">';
 				}
@@ -722,7 +743,16 @@ function mwb_ubo_lite_bump_offer_html( $bump, $encountered_order_bump_id = '', $
 		$bumphtml .= '<input type="hidden" id="bump_hidden_check_pro" class="check_if_pro_exists" value="inactive">';
 	}
 	// Display Unique ID.
-	$bumphtml .= '<input type="hidden" id="unique_id_for_encountered_bump" class="unique_id_for_this_bump" value="' . mwb_ubo_lite_fetch_unique_id( $encountered_order_bump_id ) . '" >';
+	// $bumphtml .= '<input type="text" id="unique_id_for_encountered_bump" class="unique_id_for_this_bump" value="' . mwb_ubo_lite_fetch_unique_id( $encountered_order_bump_id ) . '" >';
+
+	if ( mwb_ubo_lite_if_pro_exists() ) {
+
+		// Store the array having all the unique Order ID's associated with the encountered bump(START).
+		$array_of_filters = mwb_ubo_lite_fetch_the_unique_order_ids_array( $encountered_order_bump_id );
+		$bumphtml .= '<input type="hidden" id="all_order_ids_associated_with_this_bump" class="all_order_ids_associated_with_this_bump" value="' . json_encode( $array_of_filters ) . '" >';
+
+		// Store the array having all the unique Order ID's associated with the encountered bump(END).
+	}
 
 	$offer_product = wc_get_product( $bump['id'] );
 

@@ -50,10 +50,13 @@ jQuery(document).ready( function($) {
 
 
     $(document).on('click','#place_order',function(){
-        order_bump_index         = $('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
-        parent_wrapper_class     = '.mwb_ubo_wrapper_' + order_bump_index;
-        var was_order_bump_id    = $('.order_bump_id').val();
-        var was_order_bump_count = $('#unique_id_for_encountered_bump').val();
+
+        order_bump_index                         = $('.add_offer_in_cart').closest('.mwb_upsell_offer_main_wrapper').find( '.order_bump_index' ).val();
+        parent_wrapper_class                     = '.mwb_ubo_wrapper_' + order_bump_index;
+        var was_order_bump_id                    = $('.order_bump_id').val();
+        // var was_order_bump_count                 = $('#unique_id_for_encountered_bump').val();
+        var order_ids_associated_with_order_bump = $('#all_order_ids_associated_with_this_bump').val();
+
         if ( $( parent_wrapper_class + ' .add_offer_in_cart' ).is( ':checked' ) ) {
             // Run an ajax here.
             jQuery.ajax({
@@ -64,7 +67,8 @@ jQuery(document).ready( function($) {
                 data: { 
                     nonce                : mwb_ubo_lite_public.auth_nonce,
                     was_order_bump_id    : was_order_bump_id,
-                    was_order_bump_count : was_order_bump_count,
+                    // was_order_bump_count : was_order_bump_count,
+                    order_ids_associated_with_order_bump : order_ids_associated_with_order_bump,
                     action               : 'send_value_of_count_and_bump_id_start_session',
                 },  
                 success: function( msg ) {
@@ -179,9 +183,11 @@ jQuery(document).ready( function($) {
         
         switch(check_for_pro_version) {
             case 'inactive':
+                // If free version is used, simply add to cart and no need to count the usage of Order Bump
                 process_the_bump_order_and_add_to_cart();
                 break;
             case 'active':
+                // If pro version is used, we will check if the limit is not reached for this bump.
                 if( mwb_ubo_count_of_usage_of_orderbump(order_bump_id) == 'positive' ) {
                     process_the_bump_order_and_add_to_cart();
                 }
@@ -325,9 +331,11 @@ jQuery(document).ready( function($) {
                 // $('.titledesc').hide();
             }
     }
-/*=======================================================================
+
+
+/*====================================================================================================================
                     Select the variations in popup.
-========================================================================*/
+=====================================================================================================================*/
     /*
      * POP-UP Select change JS,
      * To add the price html and image of selected variation in popup.
@@ -447,6 +455,7 @@ jQuery(document).ready( function($) {
             }
         });
     });
+
 
 /*==========================================================================
                         Variation popup add to cart
