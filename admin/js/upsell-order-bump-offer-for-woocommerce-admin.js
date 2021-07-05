@@ -339,10 +339,7 @@
 
 		$('.mwb_ubo_bottom_vertical_spacing_slider').on('change', function () {
 
-		    VerticalSpacingBottom = $(this).val();
-		    BumpOfferBoxMain.css( 'padding-bottom', VerticalSpacingBottom + 'px' );
-
-		    $('.mwb_ubo_bottom_spacing_slider_size').html( VerticalSpacingBottom + 'px' );
+		    VerticalSpacingBottom = $(this).val();2
 		});
 
 

@@ -1668,8 +1668,6 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 	 */
 	public function update_the_value_count_for_bump_use( $order_id ) {
 
-		// $count_of_previous_bump = WC()->session->get( 'bump_use_count' )['count'];
-
 		if ( '' == $order_id || empty( $order_id ) ) {
 			return;
 		}
@@ -1691,14 +1689,6 @@ class Upsell_Order_Bump_Offer_For_Woocommerce_Public {
 		update_option( 'mwb_ubo_bump_list', $all_bumps_info );
 		WC()->session->__unset( 'bump_use_count' );
 
-		// $count_in_database           = $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'];
-
-		// Convert the value to integer, upgrade it, change to string again and upload it.
-		// $count_in_database = (int) $count_in_database;
-		// ++$count_in_database;
-		// $count_in_database = (string) $count_in_database;
-		// $all_bumps_info[ $id_of_previous_bump ]['mwb_upsell_bump_used_count'] = $count_in_database;
-		// update_option( 'mwb_ubo_bump_list', $all_bumps_info );
 	}
 
 	// ===============================================================================================================================================================
